@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OAuth 提供方配置</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<main>
+ <header><span class="eyebrow">ZBOARD · OAUTH / OIDC</span><h1>OAuth 提供方</h1><p>配置 OIDC 身份提供方，由 ZBoard 核心完成账号绑定和会话签发。</p></header>
+ <aside><strong>第三方账号登录 ZBoard</strong><p>配置并启用插件后，登录页会显示第三方登录入口。首次使用请先通过邮箱登录，在“账户安全”中确认密码并绑定第三方账号。</p></aside>
+ <section class="state"><span id="state">正在连接宿主…</span><button id="reload" type="button">刷新状态</button></section>
+ <form id="settings">
+  <fieldset id="fields" disabled>
+   <label for="issuer">Issuer URL</label><input id="issuer" type="url" required maxlength="2048" placeholder="https://accounts.example.com" autocomplete="off"><small>填写提供方公布的精确 Issuer，路径和末尾斜杠应保持一致。仅支持公网 HTTPS。</small>
+   <p class="callback">在提供方登记精确回调地址：<code>你的站点地址/api/v1/auth/oidc/callback</code>。站点地址使用 ZBoard 的公开访问地址，生产环境必须为 HTTPS。</p>
+   <label for="client-id">Client ID</label><input id="client-id" required maxlength="512" autocomplete="off" spellcheck="false">
+   <label for="client-secret">Client Secret <span>（可选）</span></label><input id="client-secret" type="password" maxlength="8192" autocomplete="new-password"><small>由宿主加密保存，授权码交换时仅发送到已配置提供方的 Token 端点；元数据检测不发送密钥。</small>
+   <label for="scopes">Scopes</label><input id="scopes" required value="openid profile email" maxlength="2048" autocomplete="off"><small>以空格分隔，必须包含 openid。</small>
+   <label class="consent"><input id="replace" type="checkbox" required><span>我确认保存将完整替换配置，包括 Client Secret。宿主不回显已保存的字段；留空会清除旧密钥。</span></label>
+   <div class="actions"><button id="save" type="button" class="primary">保存配置</button><button id="test" type="button">检测已保存配置</button></div>
+  </fieldset>
+ </form>
+ <p id="notice" role="status" aria-live="polite"></p>
+ <footer>检测通过仅表示元数据符合本插件要求，不代表 Client ID / Secret 有效，也不代表登录链路已打通。停用插件后，本页会话由宿主撤销。</footer>
+</main>
+<script src="bridge.js"></script>
+<script src="app.js"></script>
+</body></html>

@@ -1,0 +1,9 @@
+/dist/
+/.build/
+/.local/
+/go.work
+/go.work.sum
+*.key
+*.key.pub
+.env
+.DS_Store

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "zboard.oauth",
+  "name": "OAuth 登录",
+  "description": "通过 OIDC 提供方登录 ZBoard；账号绑定和会话签发由宿主核心负责。",
+  "version": "0.1.0",
+  "requires": {
+    "zboard": ">=0.0.1 <0.1.0",
+    "recommended_zboard_version": "0.0.1",
+    "tested_zboard_versions": [
+      "0.0.1"
+    ],
+    "plugin_protocol": 1,
+    "ui_bridge": 1
+  },
+  "capabilities": [
+    "zboard.ui.page.v1",
+    "zboard.config.v1",
+    "zboard.identity.provider.v1"
+  ],
+  "surfaces": [
+    "admin"
+  ],
+  "components": {
+    "ui": {
+      "admin": "ui/index.html"
+    }
+  },
+  "contributions": {
+    "pages": [
+      {
+        "id": "settings",
+        "surface": "admin",
+        "title": "OAuth 提供方配置",
+        "purpose": "configuration"
+      }
+    ]
+  },
+  "files": {}
+}
