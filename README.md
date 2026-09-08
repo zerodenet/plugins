@@ -76,4 +76,6 @@ python3 scripts/package.py --zboard /path/to/zboard \
 
 产物：`dist/zboard.oauth-0.1.0-<平台>.zbplugin`。开发公钥：`.local/publisher.key.pub`，对应发布者 ID 为 `oauth-local-dev`。不要将开发私钥用于生产发布。私钥、构建产物、开发配置和 `go.work` 均不进入版本跟踪，本仓库没有预设远程地址。
 
+macOS 开发包尚未完成稳定运行验收：本机完整导入、配置、启停流程曾通过，但重复启动出现宿主 10 秒超时，随后系统日志记录同一插件进程被 Gatekeeper 拒绝。包的 Ed25519 发布者签名不替代 Apple 代码签名或公证；本脚本未执行 Apple 签名或公证。Linux 包已完成交叉构建和包校验，仍需在目标部署环境验证运行。
+
 协议参考：[OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html)、[OIDC Core](https://openid.net/specs/openid-connect-core-1_0.html)、[OAuth Security BCP](https://www.rfc-editor.org/rfc/rfc9700.html)、[PKCE](https://www.rfc-editor.org/rfc/rfc7636.html)。核心契约见宿主 `docs/plugin-identity.md`。
