@@ -3,7 +3,7 @@
  let revision=null, entries=[], selected=-1, draft=null, busy=false;
  const fields={id:'provider-id',name:'name',protocol:'protocol',issuer:'issuer',authorization_endpoint:'authorization-endpoint',token_endpoint:'token-endpoint',userinfo_endpoint:'userinfo-endpoint',subject_field:'subject-field',email_field:'email-field',email_verified_field:'email-verified-field',token_auth_method:'token-auth',scopes:'scopes',client_id:'client-id'};
  const notice=(text,error=false)=>{$('notice').textContent=text;$('notice').className=error?'error':'success';};
- function lock(value){busy=value;$('fields').disabled=value||revision===null||!draft;for(const id of ['reload','add-github','add-google','add-custom','test'])$(id).disabled=value|| (id!=='reload'&&revision===null);$('remove').disabled=selected<0;}
+ function lock(value){busy=value;$('fields').hidden=!draft;$('fields').disabled=value||revision===null||!draft;for(const id of ['reload','add-github','add-google','add-custom','test'])$(id).disabled=value|| (id!=='reload'&&revision===null);$('remove').disabled=selected<0;}
  function updateProtocol(){const custom=draft?.preset==='custom'||!draft?.preset;$('custom-fields').hidden=!custom;const oauth=$('protocol').value==='oauth2';$('oauth-fields').hidden=!oauth;for(const id of ['issuer','authorization-endpoint','token-endpoint','userinfo-endpoint','subject-field'])$(id).required=custom&&(id==='issuer'||oauth);$('preset-note').textContent=custom?'':`${draft.preset==='github'?'GitHub':'Google'} 的协议、地址、Scopes 和用户字段已预设，只需填写客户端信息。`;}
  function edit(index,preset){
   if(busy)return;selected=index;

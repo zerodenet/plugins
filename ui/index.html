@@ -6,7 +6,7 @@
 <aside><strong>注册由 ZBoard 核心管理</strong><p>新用户遵守站点注册开关；已验证邮箱可用于创建普通账户，缺少邮箱时由站点补充验证。同邮箱的已有账户需要先登录后绑定。</p></aside>
 <section class="state"><span id="state">正在连接宿主…</span><button id="reload" type="button">刷新配置</button></section>
 <section><h2>已配置的提供方</h2><div id="providers" class="provider-list"></div><p id="empty">尚未配置提供方。</p><div class="actions"><button id="add-github" type="button">添加 GitHub</button><button id="add-google" type="button">添加 Google</button><button id="add-custom" type="button">添加自定义</button></div></section>
-<form id="settings"><fieldset id="fields" disabled>
+<form id="settings"><fieldset id="fields" disabled hidden>
 <legend id="editor-title">提供方设置</legend>
 <label for="provider-id">提供方标识</label><input id="provider-id" required pattern="[a-z0-9][a-z0-9_-]{0,31}" maxlength="32" autocomplete="off"><small>保存后保持不变，绑定账户通过此标识区分。</small>
 <label for="name">登录按钮名称</label><input id="name" required maxlength="100" autocomplete="off">
