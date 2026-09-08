@@ -30,6 +30,9 @@ func Discover(ctx context.Context, client *http.Client, c config.Config) (Metada
 	if !c.Configured() {
 		return Metadata{}, errors.New("save an issuer and client_id before testing")
 	}
+	if c.Protocol == "oauth2" {
+		return Metadata{Issuer: c.Issuer, AuthorizationEndpoint: c.AuthorizationEndpoint, TokenEndpoint: c.TokenEndpoint}, nil
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimSuffix(c.Issuer, "/")+"/.well-known/openid-configuration", nil)
 	if err != nil {
 		return Metadata{}, errors.New("invalid discovery URL")

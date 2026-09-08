@@ -2,8 +2,8 @@
   "schema_version": 1,
   "id": "zboard.oauth",
   "name": "OAuth 登录",
-  "description": "通过 OIDC 提供方登录 ZBoard；账号绑定和会话签发由宿主核心负责。",
-  "version": "0.1.0",
+  "description": "通过 GitHub、Google 或自定义 OAuth2 / OIDC 提供方登录与注册；账户和会话由核心管理。",
+  "version": "0.2.0",
   "requires": {
     "zboard": ">=0.0.1 <0.1.0",
     "recommended_zboard_version": "0.0.1",

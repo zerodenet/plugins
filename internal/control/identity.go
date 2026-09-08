@@ -17,28 +17,39 @@ import (
 	"zboard.local/plugins/oauth/internal/provider"
 )
 
-func (s *Server) providerSnapshot(ctx context.Context) (config.Config, provider.Metadata, error) {
+func (s *Server) providerSnapshot(ctx context.Context, id string) (config.Config, provider.Metadata, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if !s.config.Configured() {
+	var c config.Config
+	for _, entry := range s.config.Entries() {
+		if entry.ID == id && !entry.Disabled {
+			c = entry
+			break
+		}
+	}
+	if !c.Configured() {
 		return config.Config{}, provider.Metadata{}, errors.New("provider is not configured")
 	}
-	if s.discovery == nil || time.Since(s.discoveredAt) > 5*time.Minute {
-		metadata, err := provider.Discover(ctx, s.client, s.config)
+	if s.discovery == nil {
+		s.discovery = map[string]provider.Metadata{}
+		s.discoveredAt = map[string]time.Time{}
+	}
+	if _, ok := s.discovery[id]; !ok || time.Since(s.discoveredAt[id]) > 5*time.Minute {
+		metadata, err := provider.Discover(ctx, s.client, c)
 		if err != nil {
 			return config.Config{}, provider.Metadata{}, err
 		}
-		s.discovery = &metadata
-		s.discoveredAt = time.Now()
+		s.discovery[id] = metadata
+		s.discoveredAt[id] = time.Now()
 	}
-	return s.config, *s.discovery, nil
+	return c, s.discovery[id], nil
 }
-func (s *Server) GetIdentityProvider(ctx context.Context, _ *pluginv1.Empty) (*pluginv1.IdentityProvider, error) {
-	c, m, err := s.providerSnapshot(ctx)
+func (s *Server) GetIdentityProvider(ctx context.Context, r *pluginv1.IdentityProviderRequest) (*pluginv1.IdentityProvider, error) {
+	c, m, err := s.providerSnapshot(ctx, r.GetProviderId())
 	if err != nil {
 		return nil, status.Error(codes.FailedPrecondition, "OIDC provider is unavailable; check saved configuration")
 	}
-	return &pluginv1.IdentityProvider{Issuer: c.Issuer, AuthorizationEndpoint: m.AuthorizationEndpoint, ClientId: c.ClientID, Scopes: append([]string{}, c.Scopes...)}, nil
+	return &pluginv1.IdentityProvider{Issuer: c.Issuer, AuthorizationEndpoint: m.AuthorizationEndpoint, ClientId: c.ClientID, Scopes: append([]string{}, c.Scopes...), ProviderId: c.ID, Protocol: c.Protocol}, nil
 }
 func validCallback(raw string) bool {
 	u, err := url.Parse(raw)
@@ -51,13 +62,17 @@ func (s *Server) ExchangeIdentity(ctx context.Context, r *pluginv1.IdentityExcha
 	if r == nil || len(r.Code) == 0 || len(r.Code) > 8192 || len(r.Nonce) != 43 || len(r.PkceVerifier) != 43 || !validCallback(r.RedirectUri) {
 		return nil, status.Error(codes.InvalidArgument, "invalid identity exchange request")
 	}
-	c, m, err := s.providerSnapshot(ctx)
+	c, m, err := s.providerSnapshot(ctx, r.GetProviderId())
 	if err != nil || r.Issuer != c.Issuer {
 		return nil, status.Error(codes.FailedPrecondition, "OIDC configuration changed or unavailable")
 	}
 	ctx = oidc.ClientContext(ctx, s.client)
+	if c.Protocol == "oauth2" {
+		return s.exchangeOAuth2(ctx, c, r)
+	}
 	oidcProvider := (&oidc.ProviderConfig{IssuerURL: c.Issuer, AuthURL: m.AuthorizationEndpoint, TokenURL: m.TokenEndpoint, JWKSURL: m.JWKSURI, Algorithms: []string{"RS256", "ES256"}}).NewProvider(ctx)
 	oauth := oauth2.Config{ClientID: c.ClientID, ClientSecret: c.ClientSecret, Endpoint: oidcProvider.Endpoint(), RedirectURL: r.RedirectUri, Scopes: c.Scopes}
+	oauth.Endpoint.AuthStyle = tokenAuthStyle(c.TokenAuthMethod)
 	token, err := oauth.Exchange(ctx, r.Code, oauth2.VerifierOption(r.PkceVerifier))
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "authorization code exchange failed")
@@ -67,11 +82,13 @@ func (s *Server) ExchangeIdentity(ctx context.Context, r *pluginv1.IdentityExcha
 		return nil, status.Error(codes.Unauthenticated, "provider did not return a valid ID token")
 	}
 	verified, err := oidcProvider.Verifier(&oidc.Config{ClientID: c.ClientID, SupportedSigningAlgs: []string{"RS256", "ES256"}}).Verify(ctx, raw)
-	if err != nil || verified.Issuer != r.Issuer || verified.Subject == "" || len(verified.Subject) > 512 || subtle.ConstantTimeCompare([]byte(verified.Nonce), []byte(r.Nonce)) != 1 {
+	if err != nil || (verified.Issuer != r.Issuer && !(c.Issuer == "https://accounts.google.com" && verified.Issuer == "accounts.google.com")) || verified.Subject == "" || len(verified.Subject) > 512 || subtle.ConstantTimeCompare([]byte(verified.Nonce), []byte(r.Nonce)) != 1 {
 		return nil, status.Error(codes.Unauthenticated, "ID token verification failed")
 	}
 	var claims struct {
 		AuthorizedParty string `json:"azp"`
+		Email           string `json:"email"`
+		EmailVerified   bool   `json:"email_verified"`
 	}
 	if verified.Claims(&claims) != nil || (len(verified.Audience) > 1 && claims.AuthorizedParty != c.ClientID) || (claims.AuthorizedParty != "" && claims.AuthorizedParty != c.ClientID) {
 		return nil, status.Error(codes.Unauthenticated, "ID token authorized party mismatch")
@@ -80,5 +97,5 @@ func (s *Server) ExchangeIdentity(ctx context.Context, r *pluginv1.IdentityExcha
 		return nil, status.Error(codes.Unauthenticated, "access token binding failed")
 	}
 	// No token, user ID, role, SQL or node operation crosses back to the host.
-	return &pluginv1.VerifiedIdentity{Issuer: verified.Issuer, Subject: verified.Subject}, nil
+	return &pluginv1.VerifiedIdentity{Issuer: c.Issuer, Subject: verified.Subject, Email: claims.Email, EmailVerified: claims.EmailVerified}, nil
 }

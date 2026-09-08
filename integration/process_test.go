@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
@@ -52,6 +53,28 @@ func TestRealPluginProcessCanRestartAndConfigure(t *testing.T) {
 			if err != nil || result.Healthy {
 				t.Fatal("unconfigured diagnostic should fail")
 			}
+			multi := &pluginv1.ConfigRequest{ConfigJson: []byte(`{"providers":[{"id":"github","preset":"github","client_id":"client","client_secret":"secret"},{"id":"google","preset":"google","client_id":"google","disabled":true}]}`)}
+			normalized, err = api.ValidateConfig(ctx, multi)
+			if err != nil {
+				t.Fatal(err)
+			}
+			multi.ConfigJson = normalized.NormalizedJson
+			if _, err = api.ApplyConfig(ctx, multi); err != nil {
+				t.Fatal(err)
+			}
+			catalog, err := api.ListIdentityProviders(ctx, &pluginv1.Empty{})
+			if err != nil || len(catalog.Providers) != 1 || catalog.Providers[0].Id != "github" {
+				t.Fatal("process provider catalog failed", err)
+			}
+			provider, err := api.GetIdentityProvider(ctx, &pluginv1.IdentityProviderRequest{ProviderId: "github"})
+			if err != nil || provider.Protocol != "oauth2" || provider.ProviderId != "github" {
+				t.Fatal("process selected metadata failed", err)
+			}
+			view, err := api.DescribeConfig(ctx, multi)
+			if err != nil || strings.Contains(string(view.NormalizedJson), `"client_secret"`) || !strings.Contains(string(view.NormalizedJson), `"has_secret":true`) {
+				t.Fatal("process config projection failed", err)
+			}
+
 		}()
 	}
 }

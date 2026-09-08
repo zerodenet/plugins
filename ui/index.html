@@ -1,25 +1,38 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OAuth 提供方配置</title><link rel="stylesheet" href="style.css"></head>
-<body>
-<main>
- <header><span class="eyebrow">ZBOARD · OAUTH / OIDC</span><h1>OAuth 提供方</h1><p>配置 OIDC 身份提供方，由 ZBoard 核心完成账号绑定和会话签发。</p></header>
- <aside><strong>第三方账号登录 ZBoard</strong><p>配置并启用插件后，登录页会显示第三方登录入口。首次使用请先通过邮箱登录，在“账户安全”中确认密码并绑定第三方账号。</p></aside>
- <section class="state"><span id="state">正在连接宿主…</span><button id="reload" type="button">刷新状态</button></section>
- <form id="settings">
-  <fieldset id="fields" disabled>
-   <label for="issuer">Issuer URL</label><input id="issuer" type="url" required maxlength="2048" placeholder="https://accounts.example.com" autocomplete="off"><small>填写提供方公布的精确 Issuer，路径和末尾斜杠应保持一致。仅支持公网 HTTPS。</small>
-   <p class="callback">在提供方登记精确回调地址：<code>你的站点地址/api/v1/auth/oidc/callback</code>。站点地址使用 ZBoard 的公开访问地址，生产环境必须为 HTTPS。</p>
-   <label for="client-id">Client ID</label><input id="client-id" required maxlength="512" autocomplete="off" spellcheck="false">
-   <label for="client-secret">Client Secret <span>（可选）</span></label><input id="client-secret" type="password" maxlength="8192" autocomplete="new-password"><small>由宿主加密保存，授权码交换时仅发送到已配置提供方的 Token 端点；元数据检测不发送密钥。</small>
-   <label for="scopes">Scopes</label><input id="scopes" required value="openid profile email" maxlength="2048" autocomplete="off"><small>以空格分隔，必须包含 openid。</small>
-   <label class="consent"><input id="replace" type="checkbox" required><span>我确认保存将完整替换配置，包括 Client Secret。宿主不回显已保存的字段；留空会清除旧密钥。</span></label>
-   <div class="actions"><button id="save" type="button" class="primary">保存配置</button><button id="test" type="button">检测已保存配置</button></div>
-  </fieldset>
- </form>
- <p id="notice" role="status" aria-live="polite"></p>
- <footer>检测通过仅表示元数据符合本插件要求，不代表 Client ID / Secret 有效，也不代表登录链路已打通。停用插件后，本页会话由宿主撤销。</footer>
-</main>
-<script src="bridge.js"></script>
-<script src="app.js"></script>
-</body></html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第三方登录配置</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<header><span class="eyebrow">ZBOARD · OAUTH2 / OIDC</span><h1>第三方登录与注册</h1><p>添加 GitHub、Google 或自定义提供方，让用户授权登录和注册 ZBoard。</p></header>
+<aside><strong>注册由 ZBoard 核心管理</strong><p>新用户遵守站点注册开关；已验证邮箱可用于创建普通账户，缺少邮箱时由站点补充验证。同邮箱的已有账户需要先登录后绑定。</p></aside>
+<section class="state"><span id="state">正在连接宿主…</span><button id="reload" type="button">刷新配置</button></section>
+<section><h2>已配置的提供方</h2><div id="providers" class="provider-list"></div><p id="empty">尚未配置提供方。</p><div class="actions"><button id="add-github" type="button">添加 GitHub</button><button id="add-google" type="button">添加 Google</button><button id="add-custom" type="button">添加自定义</button></div></section>
+<form id="settings"><fieldset id="fields" disabled>
+<legend id="editor-title">提供方设置</legend>
+<label for="provider-id">提供方标识</label><input id="provider-id" required pattern="[a-z0-9][a-z0-9_-]{0,31}" maxlength="32" autocomplete="off"><small>保存后保持不变，绑定账户通过此标识区分。</small>
+<label for="name">登录按钮名称</label><input id="name" required maxlength="100" autocomplete="off">
+<label class="consent"><input id="enabled" type="checkbox" checked><span>启用此提供方</span></label>
+<div id="custom-fields">
+<label for="protocol">协议</label><select id="protocol"><option value="oauth2">OAuth2 授权码 + 用户资料</option><option value="oidc">OpenID Connect</option></select>
+<label for="issuer">身份服务标识 / Issuer</label><input id="issuer" type="url" required maxlength="2048" placeholder="https://accounts.example.com" autocomplete="off"><small>OIDC 使用精确 Issuer；OAuth2 使用稳定的身份服务 HTTPS 地址。</small>
+<div id="oauth-fields">
+<label for="authorization-endpoint">授权地址</label><input id="authorization-endpoint" type="url" maxlength="2048" autocomplete="off">
+<label for="token-endpoint">令牌地址</label><input id="token-endpoint" type="url" maxlength="2048" autocomplete="off">
+<label for="userinfo-endpoint">用户资料地址</label><input id="userinfo-endpoint" type="url" maxlength="2048" autocomplete="off">
+<label for="subject-field">用户唯一标识字段</label><input id="subject-field" value="id" maxlength="128" autocomplete="off"><small>例如 id、sub、data.id。必须是稳定 ID，不能用用户名或邮箱代替。</small>
+<label for="email-field">邮箱字段（可选）</label><input id="email-field" value="email" maxlength="128" autocomplete="off">
+<label for="email-verified-field">邮箱验证状态字段（可选）</label><input id="email-verified-field" value="email_verified" maxlength="128" autocomplete="off"><small>仅 JSON 布尔值 true 表示已验证；没有此字段时由 ZBoard 验证邮箱。</small>
+</div>
+<label for="token-auth">客户端认证方式</label><select id="token-auth"><option value="basic">HTTP Basic</option><option value="post">POST 表单</option><option value="none">公开客户端（无密钥）</option></select>
+<label for="scopes">Scopes</label><input id="scopes" maxlength="2048" autocomplete="off"><small>空格分隔。OIDC 必须包含 openid。授权流程始终使用 S256 PKCE。</small>
+</div>
+<p id="preset-note"></p>
+<p class="callback">在提供方登记回调：<code>你的站点地址/api/v1/auth/oidc/callback</code>，使用 ZBoard 设置中的公开 HTTPS 地址。</p>
+<label for="client-id">Client ID</label><input id="client-id" required maxlength="512" autocomplete="off" spellcheck="false">
+<label for="client-secret">Client Secret</label><input id="client-secret" type="password" maxlength="8192" autocomplete="new-password"><small id="secret-hint">密钥加密保存，不会回显。</small>
+<label class="consent"><input id="clear-secret" type="checkbox"><span>清除已保存密钥（仅适用于公开客户端）</span></label>
+<div class="actions"><button id="save" type="button" class="primary">保存提供方</button><button id="remove" type="button">删除提供方</button></div>
+</fieldset></form>
+<div class="actions"><button id="test" type="button">检测全部已启用提供方</button></div>
+<p id="notice" role="status" aria-live="polite"></p>
+<footer>GitHub、Google 的地址和字段映射由快捷配置填写。自定义服务需要支持公网 HTTPS、授权码流程和 S256 PKCE；检测不等于实际授权成功。</footer>
+</main><script src="bridge.js"></script><script src="app.js"></script></body></html>

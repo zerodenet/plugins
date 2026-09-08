@@ -16,12 +16,12 @@ import (
 )
 
 const ID = "zboard.oauth"
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 type Server struct {
 	pluginv1.UnimplementedPluginControlServer
-	discovery    *provider.Metadata
-	discoveredAt time.Time
+	discovery    map[string]provider.Metadata
+	discoveredAt map[string]time.Time
 	mu           sync.RWMutex
 	config       config.Config
 	client       *http.Client
@@ -44,6 +44,9 @@ func (s *Server) Health(context.Context, *pluginv1.Empty) (*pluginv1.HealthResul
 func (s *Server) ValidateConfig(_ context.Context, r *pluginv1.ConfigRequest) (*pluginv1.ConfigResult, error) {
 	c, err := config.Parse(r.GetConfigJson())
 	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	if err := preserveSecrets(&c, r.PreviousConfigJson); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	raw, err := json.Marshal(c)
@@ -69,8 +72,16 @@ func (s *Server) TestConfig(ctx context.Context, r *pluginv1.ConfigRequest) (*pl
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err := provider.Check(ctx, s.client, c); err != nil {
-		return &pluginv1.HealthResult{Healthy: false, Message: err.Error()}, nil
+	if len(c.Entries()) == 0 {
+		return &pluginv1.HealthResult{Healthy: false, Message: "no providers configured"}, nil
 	}
-	return &pluginv1.HealthResult{Healthy: true, Message: "OIDC metadata check passed; client credentials, PKCE execution and login have not been verified"}, nil
+	for _, entry := range c.Entries() {
+		if entry.Disabled {
+			continue
+		}
+		if err := provider.Check(ctx, s.client, entry); err != nil {
+			return &pluginv1.HealthResult{Healthy: false, Message: err.Error()}, nil
+		}
+	}
+	return &pluginv1.HealthResult{Healthy: true, Message: "provider configuration check passed; client credentials and actual authorization have not been verified"}, nil
 }

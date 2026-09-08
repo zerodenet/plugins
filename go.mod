@@ -7,7 +7,7 @@ toolchain go1.26.8
 require (
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/hashicorp/go-plugin v1.7.0
-	github.com/zerodenet/zboard/backend v0.0.0-20260908161906-722dec1de349
+	github.com/zerodenet/zboard/backend v0.0.0-20260908164608-36c7554134aa
 	golang.org/x/oauth2 v0.37.0
 	google.golang.org/grpc v1.82.1
 )
