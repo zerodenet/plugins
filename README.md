@@ -2,57 +2,50 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
-Plugins for the ZeroDeNet ecosystem. This repository hosts official plugin source code, developer documentation, and the design of a shared marketplace for [ZBoard](https://github.com/zerodenet/zboard) and [ZNet Sink](https://github.com/zerodenet/znet-sink).
+The plugin platform for the ZeroDeNet ecosystem. This repository brings together the project documentation, host-specific plugin collections, and the design of a shared marketplace for [ZBoard](https://github.com/zerodenet/zboard) and [ZNet Sink](https://github.com/zerodenet/znet-sink).
 
-[![Plugin checks](https://github.com/zerodenet/plugins/actions/workflows/ci.yml/badge.svg)](https://github.com/zerodenet/plugins/actions/workflows/ci.yml)
-[![License: MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-blue.svg)](LICENSE)
+## Repository branches
 
-## Plugins
+| Branch | Purpose |
+| --- | --- |
+| **main** | Platform overview, shared architecture, contribution policies, and marketplace proposals |
+| [**zboard**](https://github.com/zerodenet/plugins/tree/zboard) | ZBoard plugins, configuration guides, builds, and tests |
+| [**znet-sink**](https://github.com/zerodenet/plugins/tree/znet-sink) | Client plugin development and integration documentation |
 
-| Plugin | Host | Description |
-| --- | --- | --- |
-| [OAuth](zboard/oauth/README.md) | ZBoard | Sign in and register with GitHub, Google, or a custom OAuth2 / OpenID Connect provider. |
+This branch is the documentation entry point. Each host collection is maintained and released from its own branch. Contributions target the branch responsible for the change.
 
-The OAuth plugin is available for source builds and integration testing. Signed releases and a public catalog are planned. ZNet Sink support is planned; its plugin runtime and host API are not yet available.
+## Plugin collections
 
-## Getting started
+### ZBoard
 
-To install a plugin, start with its README for host requirements and configuration, then follow the [installation guide](docs/usage.md). During development, packages can be built locally with the host's signing tools.
+The [OAuth plugin](https://github.com/zerodenet/plugins/tree/zboard/zboard/oauth) connects GitHub, Google, and custom OAuth2 / OpenID Connect providers to ZBoard's sign-in and registration flows. Source builds and integration tests are available on the `zboard` branch.
 
-For local development, clone the repository and run the checks:
+### ZNet Sink
 
-```sh
-git clone https://github.com/zerodenet/plugins.git
-cd plugins
-sh scripts/check.sh
-```
+The [client branch](https://github.com/zerodenet/plugins/tree/znet-sink) establishes the scope for client plugins. Its host API and plugin runtime are under design; no client plugin implementation is available yet.
 
-The current checks require Go 1.26.8 and Node.js 18 or later. Packaging also requires Python 3 and a ZBoard checkout containing the plugin packager. See [Development](docs/development.md) for setup and build commands.
+Signed releases and a public marketplace catalog are planned. The [marketplace proposal](docs/marketplace-design.md) describes shared discovery and distribution across hosts.
 
 ## Architecture
 
-Plugins provide integrations and interfaces through APIs exposed by their host application. Each host handles installation, permissions, configuration, private data, and upgrades. Business rules—including account registration and credential management—remain in the host's core services.
+Plugins extend their host through dedicated APIs. Each application owns permission checks, configuration, private data, installation, and upgrades. Core business rules remain in the application that owns them.
 
-The shared marketplace will organize releases by plugin, host, and platform. Hosts retain their own APIs and package compatibility rules. See [Architecture](docs/governance.md) and the [marketplace proposal](docs/marketplace-design.md) for the contracts behind this model.
+The marketplace organizes releases by plugin, host, and platform. Installation decisions and runtime behavior are governed by each host's contracts. Read [Plugin architecture](docs/governance.md) for those responsibilities.
 
 ## Documentation
 
-| Guide | For |
-| --- | --- |
-| [Installation and operation](docs/usage.md) | Administrators installing and maintaining plugins |
-| [Development](docs/development.md) | Developers building and testing plugins |
-| [Architecture](docs/governance.md) | Authors designing host integrations |
-| [Publishing](docs/publishing.md) | Maintainers preparing releases |
-| [Marketplace proposal](docs/marketplace-design.md) | Contributors working on shared distribution |
+- [Documentation index](docs/README.md)
+- [Choosing and operating plugins](docs/usage.md)
+- [Development model](docs/development.md)
+- [Publishing model](docs/publishing.md)
+- [Contribution guide](CONTRIBUTING.md) and [project governance](GOVERNANCE.md)
 
-[Browse all documentation →](docs/README.md)
+Host-specific setup, commands, and troubleshooting are maintained on the host branches.
 
-## Contributing
+## Community
 
-Bug reports, documentation improvements, translations, and plugin contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the review process and [GOVERNANCE.md](GOVERNANCE.md) for how project decisions are made.
-
-Report reproducible bugs through [GitHub Issues](https://github.com/zerodenet/plugins/issues). For vulnerabilities, follow the [security reporting policy](SECURITY.md).
+Use [GitHub Issues](https://github.com/zerodenet/plugins/issues) for bug reports and design proposals. Include the host and plugin when reporting a problem. Follow [SECURITY.md](SECURITY.md) for vulnerability reports.
 
 ## License
 
-[Mozilla Public License 2.0](LICENSE). Third-party dependencies are distributed under their respective licenses.
+[Mozilla Public License 2.0](LICENSE). Third-party dependencies retain their respective licenses.

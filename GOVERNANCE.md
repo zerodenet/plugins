@@ -10,6 +10,10 @@ Contributors propose changes and provide implementation, documentation, and vali
 
 A plugin requiring a new host capability needs a corresponding proposal in the host repository. Shared marketplace proposals should describe the effect on each host and compatibility with existing consumers.
 
+## Branch ownership
+
+`main` maintains the platform overview and shared documentation. `zboard` and `znet-sink` maintain their respective plugins and host-specific guides. Code review, CI, and releases target the relevant host branch. Shared policy changes are discussed on `main` and synchronized as isolated documentation changes where needed.
+
 ## Decisions
 
 Routine fixes are reviewed in pull requests. Changes to public APIs, package identity, signing, storage, or catalog formats should begin with an issue or proposal covering the use case, contract, compatibility, alternatives, and validation plan.

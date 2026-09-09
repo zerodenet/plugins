@@ -14,7 +14,7 @@ A shared catalog can serve a public website and product-specific marketplace vie
 
 The marketplace covers plugin discovery, publisher metadata, release indexing, signed catalogs, and artifact distribution. Plugin runtimes, business APIs, private data, and lifecycle transactions belong to each host as described in [Architecture](governance.md).
 
-Official source can live under `<host>/<plugin>/` in this repository. External publishers can keep independent repositories and associate a release with its source URL and commit. Marketplace participation does not require source relocation.
+Official source lives on its host branch (`zboard` or `znet-sink`), under `<host>/<plugin>/`. Shared proposals and platform documentation live on `main`. External publishers can keep independent repositories and associate a release with its source URL and commit. Marketplace participation does not require source relocation.
 
 ## Release model
 

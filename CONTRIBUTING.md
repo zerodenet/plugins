@@ -12,28 +12,31 @@ Bug reports should include plugin and host versions, operating system, reproduct
 
 ## Development workflow
 
-Fork the repository, or use a branch if you have write access. Start from the current `main` branch:
+Fork the repository, or use a branch if you have write access. Select the base branch and PR target by scope:
+
+| Scope | Base and merge target |
+| --- | --- |
+| Platform overview, shared policies, and marketplace proposals | `main` |
+| ZBoard plugins, host guides, and build checks | `zboard` |
+| ZNet Sink plugins and client integrations | `znet-sink` |
+
+For example, when editing ZBoard plugin documentation:
 
 ```sh
-git switch main
+git switch zboard
 git pull --ff-only
 git switch -c docs/installation-guide
 ```
 
 Keep each pull request focused on one change. Follow the existing style, update affected documentation, and add tests for changed behavior. See [Development](docs/development.md) for local setup.
 
-Before submitting:
-
-```sh
-sh scripts/check.sh
-git diff --check
-```
+Run the checks provided by the relevant branch before submitting. The `zboard` branch uses `sh scripts/check.sh`; documentation changes require link, language-pair, and example checks. Run `git diff --check` on every branch.
 
 Use your own Git author identity. Commit source files and dependency lockfiles; keep credentials, local workspaces, runtime data, and generated packages outside version control.
 
 ## Adding a plugin
 
-Place official plugin source under `<host>/<plugin>/`. Include:
+Keep official plugin source on its host branch, using the `<host>/<plugin>/` layout. OAuth currently lives at `zboard/oauth/` on `zboard`. Include:
 
 - A README with the use case, supported host versions, setup instructions, and limitations.
 - A manifest with a stable plugin ID, required capabilities, and entry points.
@@ -52,4 +55,4 @@ Update both versions in the same pull request. Keep commands, configuration keys
 
 Describe the user-visible result, compatibility impact, and validation performed. Distinguish automated tests from host integration and live provider testing. Maintainers may request a smaller change or more coverage where public contracts are affected.
 
-After review and passing checks, maintainers merge using squash or rebase to keep `main` linear. Releases follow the separate [publishing process](docs/publishing.md). See [Project governance](GOVERNANCE.md) for decisions and community expectations.
+After review and passing checks, maintainers merge into the appropriate target using squash or rebase to keep each long-lived branch linear. Host branches are not merged wholesale into `main`. Synchronize shared documentation by file or isolated commit so that code or implementation deletions do not cross branch boundaries. Releases follow the separate [publishing process](docs/publishing.md). See [Project governance](GOVERNANCE.md) for decisions and community expectations.
