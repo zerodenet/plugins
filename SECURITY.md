@@ -1,7 +1,21 @@
-# 安全报告
+# Security policy
 
-请勿在公开 Issue 或 PR 中提交真实 OAuth Client Secret、签名私钥、用户数据或可以直接攻击现有站点的细节。
+**English** · [简体中文](SECURITY.zh-CN.md)
 
-如仓库提供 GitHub 私密漏洞报告入口，使用该入口联系维护者；若未提供，先通过维护者已公开的联系渠道申请私密报告方式，不在公开讨论中披露敏感复现材料。本仓库未承诺固定响应时限或已启用私密报告功能。
+## Reporting a vulnerability
 
-报告包含受影响插件/宿主版本、平台、问题范围、脱敏复现步骤和建议影响评估。源码校验、签名通过和原生进程隔离不能证明第三方代码安全，运行前仍需宿主和运营者执行信任策略。
+Report vulnerabilities privately before disclosing details that could affect deployed systems. If GitHub's private vulnerability reporting is available in this repository's Security tab, use that channel. Otherwise, contact a maintainer privately or open an issue requesting a private contact without including exploit details.
+
+Include affected plugin and host versions, operating system, impact, and a minimal reproduction. Remove access tokens, client secrets, signing keys, personal data, and production configuration from attachments.
+
+Maintainers will assess affected versions and coordinate a fix and disclosure. This project does not publish a fixed response-time commitment or a long-term support schedule.
+
+## Scope
+
+Reports may concern plugin source, configuration handling, dependencies, package creation, or the distribution design maintained here. Vulnerabilities in a host's core services should also be reported through that host's security process.
+
+## Operating plugins
+
+Package signatures establish origin and integrity. Administrators select trusted publishers and review requested capabilities. ZBoard's current native plugin processes run as trusted code; process separation does not provide an operating-system sandbox.
+
+See [Architecture](docs/governance.md) for the trust model and [Publishing](docs/publishing.md) for signing-key handling.

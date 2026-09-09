@@ -1,64 +1,63 @@
-# ZeroDeNet 共享插件市场草案
+# Shared marketplace proposal
 
-状态：共享仓库已创建，OAuth 源码已迁入；以下共享目录与制品协议仍是草案，尚未实现或发布。市场服务 ZBoard、ZNet Sink 客户端及以后明确接入的宿主。当前已实现的目录 v1 和 `.zbplugin` 仍属于 ZBoard；不能把它们直接当作所有产品通用的安装协议。
+**English** · [简体中文](marketplace-design.zh-CN.md)
 
-## 仓库与职责
+**Status: Draft.** This proposal describes a shared distribution layer for ZBoard, ZNet Sink, and future hosts. ZBoard currently implements its own v1 catalog and `.zbplugin` format. The proposed v2 format has not been implemented.
 
-共享市场仓库为 `zerodenet/plugins`。仓库维护市场协议、发布者公开信息、插件元数据、目录生成与校验工具，以及官方插件的发布流程。插件源码可以存放于按宿主划分的子目录，也可以保留独立仓库，通过来源地址和发布版本关联；第三方上架不要求将源码搬入市场仓库。签名私钥、站点配置和用户数据不入库。
+## Motivation
 
-| 层次 | 职责 |
+Users should be able to discover ZeroDeNet plugins in one place. Publishers need a consistent way to describe releases, target hosts, compatibility, and artifacts. Hosts need enough signed information to select and verify an appropriate package while retaining control of installation and execution.
+
+A shared catalog can serve a public website and product-specific marketplace views. A host normally presents compatible plugins; a general website can show all supported hosts and explain compatibility requirements.
+
+## Scope
+
+The marketplace covers plugin discovery, publisher metadata, release indexing, signed catalogs, and artifact distribution. Plugin runtimes, business APIs, private data, and lifecycle transactions belong to each host as described in [Architecture](governance.md).
+
+Official source can live under `<host>/<plugin>/` in this repository. External publishers can keep independent repositories and associate a release with its source URL and commit. Marketplace participation does not require source relocation.
+
+## Release model
+
+The proposed catalog groups releases under a stable plugin ID, with separate installable artifacts for each target host.
+
+| Metadata | Purpose |
 | --- | --- |
-| 共享市场 | 发现、分类、发布者身份、版本与制品索引、兼容信息、签名目录、撤回信息 |
-| 宿主插件管理器 | 校验目标宿主、版本、平台和签名，执行能力准入、安装、启停、升级、迁移、卸载和数据清理 |
-| 宿主核心服务 | 用户身份、凭证、订单、节点发布或客户端配置等业务事实与策略 |
-| 插件 | 声明所需能力，提供扩展实现，通过宿主开放的专用接口请求操作 |
+| Plugin ID, publisher, version | Stable identity and release ownership |
+| Host ID and host version range | Target application and compatible versions |
+| Package format and API versions | Installation and runtime contracts; UI bridge version where applicable |
+| OS and architecture | Supported runtime targets, or an explicit platform-independent designation |
+| Capabilities and contributions | Required host operations and contributed interfaces |
+| Artifact URL, byte length, SHA-256 | Immutable download identity and integrity |
+| Signature and key identifier | Artifact provenance |
 
-共享市场没有执行插件、授予宿主能力、远程修改插件数据或操作业务核心的权限。市场上架不等于宿主允许安装，更不等于允许启用。
+One artifact targets one host. A host artifact may contain multiple platform binaries and UI surfaces. Releases for different hosts may evolve independently, even when they belong to the same plugin listing.
 
-## 目录与安装制品
+The signed package manifest or envelope must bind the target host and compatibility requirements. Installers compare package facts with the catalog and enforce the same checks for offline imports. The exact envelope and v2 JSON schema remain open design work.
 
-拟新增共享目录 v2，以稳定插件 ID 汇聚展示信息，并按目标宿主记录发行版本。每个可安装制品明确声明：
+## Trust model
 
-| 信息 | 内容 |
-| --- | --- |
-| 身份 | plugin_id、publisher、version |
-| 宿主 | host_id（初期为 zboard、znet-sink）、host_version_range |
-| 协议 | package_format、plugin_api_version，以及适用时的 ui_bridge_version |
-| 平台 | 明确支持的 OS/架构组合；无原生组件的包可显式声明平台无关 |
-| 能力 | 宿主命名空间内的能力声明；页面位置等贡献信息由对应宿主解释 |
-| 完整性 | 不可变制品地址、长度、SHA-256、签名发布者/密钥标识 |
+Catalog signing and package publishing are distinct roles. A host verifies both against its configured trust. Publisher keys delivered through an untrusted catalog cannot bootstrap that trust.
 
-同一插件可提供多个宿主版本和多个平台制品，按宿主分别升级。一个安装制品只有一个目标宿主，不能因市场中存在同名插件就在另一宿主运行。同一个宿主包可包含其前台、后台和多个平台组件；前后台范围不是宿主标识，也不是授权。
+The catalog can describe withdrawals and key rotations. Host policy defines how those records affect installation and existing instances, including behavior while offline. A marketplace response cannot grant capabilities or delete host business data.
 
-目录和插件包都必须绑定目标宿主与兼容要求。安装器复核实际包与目录中的身份、版本、发布者、目标宿主及摘要，不只依赖页面筛选。共享制品的签名清单或签名封装格式另行定稿；在包内目标约束完成前，不启用通用包安装器。离线导入也必须执行相同检查。
+## Compatibility with ZBoard v1
 
-保留已有 `zboard.oauth` ID，面向 ZBoard 的 OAuth 登录无需改名。将来若某项功能同时支持客户端，可用同一市场展示条目关联各宿主制品；不推导为共享二进制、配置、身份绑定或数据库。
+ZBoard's current parser accepts only schema v1 fields, recognizes `public`, `account`, and `admin` surfaces, and expects `requires.zboard` in packages. Adding v2 fields or client entries to that catalog would break validation.
 
-## 信任与生命周期
+The publishing layer should therefore provide a shared v2 catalog and independently signed compatibility catalogs. An example relative layout is `catalogs/zboard/v1/catalog.json`; this is a proposed path, not a published endpoint. The compatibility document contains only ZBoard v1 entries and `.zbplugin` artifacts.
 
-目录签名证明索引来源，制品签名证明包来源与完整性。两种信任分别配置和校验；目录中列出的发布者公钥不能自动加入宿主信任。共享市场可以发布密钥轮换和撤回信息，但宿主接受规则、离线时行为及管理员处置流程需要明确版本化，不能让目录直接触发业务删除。
+Existing ZBoard installations can consume that compatibility catalog without adopting the v2 parser. Download locations must satisfy the host's current direct-HTTPS requirements. Client hosts use their own catalog contract until they implement v2.
 
-能力使用宿主命名空间。ZBoard 的 `zboard.identity.provider.v1` 只能由 ZBoard 解释和准入；客户端另行定义所需专用能力，不继承管理后台权限。当前 ZBoard 原生进程机制也不能直接视为客户端已经具备的运行时或沙箱。
+## Open decisions
 
-各宿主保证自己的安装事务、实例隔离、会话撤销、迁移记录和失败恢复。数据初始化与升级迁移由宿主驱动；卸载保留数据、显式清除私有数据，均遵循宿主策略，不能删除核心业务事实。跨产品联动通过已有受控业务接口完成，不共享插件数据库，也不提供跨宿主全局权限。
+- Exact JSON schema, signed envelope, and host identifier registry.
+- Publisher onboarding, trusted key rotation, and withdrawal policy.
+- Artifact hosting, availability monitoring, and catalog renewal.
+- Version selection across host API versions and platforms.
+- Client runtime capabilities and isolation requirements, owned by the client project.
 
-客户端插件需要单独落地运行时、能力接口、资源隔离及系统权限边界。这份市场设计不向 Zero 内核引入插件 SPI，不改变现有控制接口和协议边界。
+## Adoption and validation
 
-## 兼容现有 ZBoard
+First settle the distribution contract, then publish and verify ZBoard-compatible artifacts and catalogs. Add v2 consumption to ZBoard and integrate ZNet Sink after its plugin lifecycle and APIs are implemented.
 
-目前 ZBoard 严格解析目录 schema_version=1，条目要求 public/account/admin 范围，包要求 requires.zboard。直接往旧目录增加 host_id 或投放客户端条目会被拒绝。
-
-共享发布流程因此提供两个层次：
-
-1. 共享目录 v2：供新市场网站及实现新协议的宿主消费。
-2. 按宿主生成并独立签名的兼容目录，例如相对路径 `catalogs/zboard/v1/catalog.json`。其中只包含 ZBoard 可理解的 v1 条目和 `.zbplugin` 制品。
-
-上述路径只是发布布局草案，不是已上线地址。当前 ZBoard 可在兼容目录发布后配置其完整 HTTPS URL，继续使用已有验签和安装链；客户端不消费这个 ZBoard 专用目录。当前下载器禁止重定向，发布渠道必须提供符合现有校验规则的直接下载地址。
-
-## 分阶段落地
-
-1. 共享市场仓库与 OAuth 源码迁移已完成；接下来固定 v2 目录和制品目标绑定契约，以及宿主、发布者和插件 ID 规则。
-2. 接入官方 OAuth 插件发布，生成签名 ZBoard v1 兼容目录，验证在线安装与离线导入；随后配置真实市场地址。
-3. ZBoard 增加 v2 消费能力；客户端单独实现插件生命周期及所需扩展接口，再接入同一市场。
-
-实现验收覆盖：跨宿主包在线/离线均拒绝、目录与包目标不一致、同插件多宿主多平台选择、旧目录兼容、签名与摘要错误、未知能力拒绝，以及各宿主升级失败保留旧版本和数据。共享市场网站可展示全部宿主，产品内市场默认展示本产品兼容项，并解释不可安装的原因。
+Acceptance should cover cross-host rejection in online and offline paths, catalog/package identity mismatches, signature failures, multi-host and platform selection, v1 compatibility, and host upgrade failure recovery. Each implementation must identify which parts of this proposal it supports.

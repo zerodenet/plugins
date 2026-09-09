@@ -1,20 +1,42 @@
-# 插件开发规范
+# Development
 
-## 目录与依赖
+**English** · [简体中文](development.zh-CN.md)
 
-本仓库采用 `<host>/<plugin>/` 布局。当前 Go 模块是 `github.com/zerodenet/plugins/zboard/oauth`，插件 ID 仍为 `zboard.oauth`。模块路径与安装身份各司其职，迁移源码不得改变已有用户绑定的命名空间。
+## Repository layout
 
-依赖只通过宿主公开 SDK 接入，使用 `go.mod` / `go.sum` 锁定版本，不导入宿主 internal 包，不提交本机路径 replace。当前 OAuth SDK 依赖固定的 ZBoard 提交，要求支持多提供方身份协议的宿主；仅比较展示版本号不足以证明协议可用。
+```text
+zboard/oauth/        OAuth plugin: Go service, UI, tests, and packaging
+scripts/check.sh    Repository check entry point
+.github/workflows/  Continuous integration
+docs/               User guides, contributor guides, and proposals
+```
 
-## 本地验证
+Plugin source is organized as `<host>/<plugin>/`. Each plugin maintains its own dependency files, manifest, and tests. The OAuth module is `github.com/zerodenet/plugins/zboard/oauth`; its installation ID is `zboard.oauth`.
 
-需要 Go 1.26.8、Node.js 18+；打包另需 Python 3。
+Host implementations and SDKs remain in their respective repositories. Use public SDK packages and pin dependency versions. Local filesystem replacements belong in an untracked development workspace.
+
+## Prerequisites
+
+| Tool | Requirement | Purpose |
+| --- | --- | --- |
+| Go | 1.26.8 toolchain | Build, race tests, and vet |
+| Node.js | 18 or later | UI and message bridge tests |
+| Python | 3 | Package assembly |
+| ZBoard source | Checkout with `backend/tools/pluginpackager` and the compatible plugin API | Package signing and host integration |
+
+The OAuth `go.mod` pins the SDK dependency. Choose a host implementing its multi-provider identity API, configuration projection, and registration flow. Host compatibility includes these APIs as well as the version constraint in the manifest.
+
+## Run checks
+
+From the repository root:
 
 ```sh
 sh scripts/check.sh
 ```
 
-检查默认 `GOWORK=off`，避免本地宿主修改掩盖已锁定 SDK 的兼容性。联合开发可以在 `zboard/oauth/` 创建被忽略的 workspace，再显式传入：
+The check script runs Go formatting checks, race tests, vet, a service build, a real gRPC plugin-process test, and UI/bridge tests. Its default `GOWORK=off` validates the dependencies recorded in `go.mod`.
+
+For joint host and plugin development:
 
 ```sh
 cd zboard/oauth
@@ -22,16 +44,24 @@ go work init . /absolute/path/to/zboard/backend
 GOWORK="$PWD/go.work" ./scripts/check.sh
 ```
 
-提交前再次使用默认检查入口验证锁定依赖。修改配置、身份交换、网络行为或页面桥时，补充对应行为测试；不能只测试正常路径，需覆盖拒绝和失败后的状态。
+Run the default checks again before submitting a change. This confirms that a local SDK edit has not hidden a dependency incompatibility.
 
-## 本地打包
+## Build a development package
 
-准备包含 `backend/tools/pluginpackager` 的 ZBoard 检出目录，然后从插件目录运行：
+Run from `zboard/oauth/`:
 
 ```sh
 python3 scripts/package.py --zboard /absolute/path/to/zboard --dev-key --platform linux-amd64
 ```
 
-也可设置 `ZBOARD_DIR`。插件构建使用自己的模块，宿主打包器使用宿主模块；不要隐式依赖目录相邻关系。开发私钥位于插件的 `.local/`，制品位于 `dist/`，都不会进入版本跟踪。开发签名只能用于测试。
+`ZBOARD_DIR` can supply the host path instead of `--zboard`. The script uses the plugin's module for its binary and the host's module for the packager. It produces `dist/zboard.oauth-0.2.0-linux-amd64.zbplugin` and stores the development key under `.local/` with publisher ID `oauth-local-dev`.
 
-新增插件至少提供：稳定 ID、宿主和版本约束、能力及入口声明、配置说明、秘密值处理、数据/迁移契约、验证脚本和平台验收结果。宿主未提供的能力不得通过任意脚本、数据库连接或自定义通用命令补齐。
+Supported build targets are `linux-amd64`, `linux-arm64`, `darwin-amd64`, `darwin-arm64`, and `windows-amd64`. Omit `--platform` to use the local Go platform. Building a target verifies compilation; installation and execution must also be tested on that target.
+
+Only test hosts should trust a development key. Production signing is described in [Publishing](publishing.md).
+
+## Test an integration
+
+Install the package into a test host and exercise configuration, enabling, disabling, upgrading, and uninstalling. For authentication, use a registered provider application and verify sign-in, registration policy, and account binding. Record the host commit, plugin version, platform, and any incomplete checks.
+
+Tests for changed behavior should cover successful operations, rejected input, timeouts, and state after failure. Keep protocol fixtures and test credentials separate from packaged UI and runtime files.

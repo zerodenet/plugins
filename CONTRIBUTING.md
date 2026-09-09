@@ -1,23 +1,55 @@
-# 贡献指南
+# Contributing
 
-先阅读 [宿主边界准则](docs/governance.md)。缺少宿主能力时，先在对应宿主设计并实现专用接口，再接入插件；不能在插件中补建核心业务旁路。
+**English** · [简体中文](CONTRIBUTING.zh-CN.md)
 
-## 修改流程
+Contributions can include bug fixes, new integrations, tests, documentation, and translations.
 
-1. 从最新 `main` 创建功能分支，例如 `feature/zboard-oauth-config`。一个 PR 聚焦一个功能或修复，写清插件 ID、宿主、用户可见变化和验证结果。
-2. 保持插件 ID 与发布者归属稳定。公开能力、配置结构、身份命名空间或持久化数据变化，需要兼容说明和失败恢复方案。
-3. 运行 `sh scripts/check.sh`。新增插件必须接入根检查入口与 CI，并提供自己的 README、manifest、锁定依赖、测试和构建步骤。
-4. 提交前查看 `git diff --check`、暂存内容与作者身份，不提交凭据、运行数据、构建包或本地 workspace。
-5. 通过 PR 合入 `main`，使用 squash 或 rebase 保持主线线性，不强推共享主线。发布操作按 [发布规范](docs/publishing.md) 单独执行。
+## Before you start
 
-## 身份与历史
+For a small fix, open a pull request describing the problem and the change. For a new plugin, host API, or marketplace format, open an issue first so maintainers can discuss scope and compatibility before implementation.
 
-使用自己的真实 Git 提交身份，不将本机全局身份覆盖为示例值。当前维护者检出环境需与对应 ZBoard 仓库的有效 `user.name` / `user.email` 一致，并写入此仓库的 local config。检查 `git var GIT_AUTHOR_IDENT` 与 `git var GIT_COMMITTER_IDENT`，同时留意环境变量覆盖。
+Bug reports should include plugin and host versions, operating system, reproduction steps, and expected and observed behavior. Provide a minimal configuration with credentials and personal data removed. Use [SECURITY.md](SECURITY.md) for vulnerabilities.
 
-本次初始化保留 OAuth 插件原有四条提交，再通过目录迁移提交引入共享布局，不重写既有作者和提交内容。插件子目录不创建 `.git/`；独立维护的外部插件通过源码地址关联市场，不复制一份失去来源的代码。
+## Development workflow
 
-## 行为与报告
+Fork the repository, or use a branch if you have write access. Start from the current `main` branch:
 
-讨论围绕可复现的问题和实现，不进行人身攻击、骚扰或发布他人隐私。问题报告写明宿主/插件版本、平台、操作和脱敏日志。认证、密钥或可被利用的漏洞请遵循 [安全报告说明](SECURITY.md)，不要在公开 Issue 粘贴真实凭据或用户数据。
+```sh
+git switch main
+git pull --ff-only
+git switch -c docs/installation-guide
+```
 
-测试通过、目标平台运行通过、真实第三方联调通过和已发布是不同状态；PR 与发布说明分别列出，不能以交叉编译代替平台验收。
+Keep each pull request focused on one change. Follow the existing style, update affected documentation, and add tests for changed behavior. See [Development](docs/development.md) for local setup.
+
+Before submitting:
+
+```sh
+sh scripts/check.sh
+git diff --check
+```
+
+Use your own Git author identity. Commit source files and dependency lockfiles; keep credentials, local workspaces, runtime data, and generated packages outside version control.
+
+## Adding a plugin
+
+Place official plugin source under `<host>/<plugin>/`. Include:
+
+- A README with the use case, supported host versions, setup instructions, and limitations.
+- A manifest with a stable plugin ID, required capabilities, and entry points.
+- Locked dependencies, a build procedure, and tests integrated into the root check script and CI.
+- Configuration and data compatibility notes, including required host-managed migrations.
+
+Discuss missing capabilities in the host repository before building the integration. [Architecture](docs/governance.md) defines the boundary between plugins and core services. External plugins may retain their own repositories; marketplace submission will follow the distribution contract once adopted.
+
+## Documentation and translations
+
+English is the default documentation language. Simplified Chinese translations use the same filename with a `.zh-CN.md` suffix. Each page links to its counterpart; translated pages link to other translated pages where available.
+
+Update both versions in the same pull request. Keep commands, configuration keys, identifiers, version constraints, and technical meaning aligned. Write for the intended reader: project introductions belong in READMEs, procedures in guides, and field definitions in references. Workstation details and development-session notes belong outside public documentation.
+
+## Review and merge
+
+Describe the user-visible result, compatibility impact, and validation performed. Distinguish automated tests from host integration and live provider testing. Maintainers may request a smaller change or more coverage where public contracts are affected.
+
+After review and passing checks, maintainers merge using squash or rebase to keep `main` linear. Releases follow the separate [publishing process](docs/publishing.md). See [Project governance](GOVERNANCE.md) for decisions and community expectations.

@@ -1,23 +1,54 @@
-# 插件使用规范
+# Installation and operation
 
-## 选择与安装
+**English** · [简体中文](usage.zh-CN.md)
 
-先确认目标宿主、宿主版本、插件协议、OS/架构和所需能力。ZBoard 插件不能导入客户端。前台、账户页、后台等位置只是界面贡献范围，不代表业务权限。
+This guide covers plugins installed into ZBoard. Host-specific setup is documented with each plugin. ZNet Sink installation instructions will be added when its plugin runtime is available.
 
-当前只有 [OAuth 源码](../zboard/oauth/README.md)，未发布正式市场目录或安装包。开发验证需自行构建并签名；只在测试宿主信任开发公钥。正式使用应选择经过维护者发布和目标平台验证的包，并独立核验可信发布者公钥。
+## Requirements
 
-ZBoard 在线安装与离线导入使用相同的包校验与生命周期路径。市场安装不能绕过发布者信任、能力准入和平台检查。首次安装保持停用，按插件说明配置并检测后启用；配置和动态启停不要求重启宿主。
+Choose a package matching the host application, host API version, operating system, and CPU architecture. A page contribution such as `admin` identifies where the UI appears; access to host operations is determined separately by capabilities and host policy.
 
-## OAuth 使用边界
+Administrators configure trusted publisher public keys in ZBoard. Obtain a key through a trusted publisher channel before installing its packages. For local testing, the [development guide](development.md) explains how to generate a development package and key.
 
-第三方登录用于让 ZBoard 充当 GitHub、Google 或自定义 OAuth2 / OIDC 客户端。快捷项是参数预填，真实 Client ID、Secret 与回调地址仍由站点运营者配置。
+## Install a package
 
-注册、身份绑定、账户状态和登录会话由 ZBoard 核心判断。关闭注册时，未关联身份不能通过 OAuth 自动创建账户或完成登录；已有绑定仍需通过账户状态等核心检查。同邮箱不能自动合并身份。插件检测成功不代表真实第三方授权已成功。
+1. Add the publisher's public key to `plugins.trusted_publishers` in the host configuration. Restart the host after changing this configuration.
+2. Open ZBoard's plugin management page and choose offline import.
+3. Select the signed `.zbplugin` file and confirm the import. ZBoard validates the package and installs it in the disabled state.
+4. Open the plugin's configuration page, save the required settings, and run its configuration check.
+5. Enable the plugin and verify the feature from the relevant user interface.
 
-## 升级、卸载与数据
+Installation, configuration, enabling, and disabling are dynamic operations and do not require a host restart. A configuration check may only validate settings or provider metadata; use a real account to verify the full login flow for an authentication plugin.
 
-升级前备份宿主要求的数据库、插件目录和加密密钥。确认新版本支持当前宿主、配置及数据迁移；失败应保留旧版本和已提交数据。回退旧代码不意味着数据能够向下迁移。
+### Online installation
 
-ZBoard 卸载会停止插件、撤销插件会话并移除程序与页面，保留配置和私有数据。需要彻底清理时，在卸载后使用宿主的“清除保留数据”。核心账户、身份绑定、订单及其他业务事实不属于插件可清理的数据。
+A configured signed catalog lets administrators select packages from the host's marketplace page. `plugins.catalog_url` must point to the catalog document. Online installation uses the same package verification as offline import. Public distribution status is listed in the [project README](../README.md).
 
-客户端接入后需公布自己的安装、备份和生命周期实现，不能把上述 ZBoard 行为当作客户端已实现的能力。
+## Upgrade and restore
+
+Back up the host database, plugin directory, and encryption keys together before an upgrade. Importing a new version of the same plugin invokes the host's upgrade process. The publisher must match the existing installation.
+
+ZBoard prepares the candidate configuration, private data, and runtime before committing the change. A successful upgrade preserves the enabled or disabled state; a failed preparation keeps the previous version and committed data. Packages without a tested-host declaration for the current version require the plugin to be disabled before upgrade.
+
+To restore a retained version, disable the plugin and select the version in its detail page. The host checks configuration and data compatibility. Restoring an older binary does not perform a downward data migration.
+
+## Disable, uninstall, and remove data
+
+| Operation | Result in ZBoard |
+| --- | --- |
+| Disable | Stops the runtime and revokes plugin UI/call sessions; keeps installation and data. |
+| Uninstall | Stops the plugin and removes its program and pages; keeps configuration, private data, and operation history. |
+| Clear retained data | Available after uninstall; clears plugin configuration and private data through the host. |
+
+Core records such as accounts, identity bindings, orders, and credentials remain owned by ZBoard. Removing a plugin does not delete these records or undo completed business transactions.
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| Marketplace is empty | Whether a catalog is configured, reachable, correctly signed, and unexpired. |
+| Import is rejected | Publisher trust, package digest, host/API compatibility, and target platform. |
+| Plugin fails to start | Plugin operation history, host logs, configuration, and platform execution policy. |
+| Settings cannot be saved | Refresh after a revision conflict and reapply the intended changes. |
+
+For OAuth-specific issues, see the [configuration reference](../zboard/oauth/docs/configuration.md). Include plugin and host versions and sanitized logs when [reporting a bug](../CONTRIBUTING.md).

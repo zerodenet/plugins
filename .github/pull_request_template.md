@@ -1,15 +1,17 @@
-## 变化
+## What changes? / 修改内容
 
-插件 ID、目标宿主、具体问题与修改后的行为：
+Describe the problem and the resulting behavior. Include the plugin ID and host where applicable.
+说明问题与修改后的行为；涉及插件时，注明插件 ID 和宿主。
 
-## 兼容与边界
+## Compatibility / 兼容性
 
-能力、配置、数据迁移、宿主版本或平台要求的变化：
+Describe changes to host requirements, capabilities, configuration, or stored data.
+说明宿主要求、能力、配置或持久化数据的变化。
 
-## 验证
+## Validation / 验证
 
-- [ ] `sh scripts/check.sh`
-- [ ] 已检查提交内容，不含密钥、运行数据或构建产物
-- [ ] 已更新相关使用说明；区分本地测试、目标平台验收与真实第三方联调
+List the checks performed and any outstanding validation.
+列出已执行的检查与待完成的验证。
 
-其他验证结果与尚未完成的项目：
+- [ ] Relevant checks pass / 相关检查通过
+- [ ] English and Chinese documentation are updated together / 中英文文档同步更新

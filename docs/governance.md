@@ -1,33 +1,51 @@
-# 宿主边界与插件准则
+# Plugin architecture
 
-## 所有权
+**English** · [简体中文](governance.zh-CN.md)
 
-共享市场负责发布信息和分发制品；宿主负责准入、运行、数据隔离与生命周期；核心服务拥有业务事实和策略。任何插件声明都不能直接成为权限授予，市场审核也不能替代宿主检查。
+This document defines the integration boundary for ZeroDeNet plugins. Project maintenance and review policies are described in [Project governance](../GOVERNANCE.md).
 
-ZBoard 独占账户、凭证、订单、权益、流量与节点配置发布。客户端独占自己的配置、系统授权、连接生命周期及受控内核操作。插件只能通过版本化的专用能力接口提出请求，不能持有数据库连接、任意 SQL、管理员令牌或节点控制凭据。
+## Responsibilities
 
-前后台是页面位置；运行组件说明执行形式；能力说明允许请求什么。三者分别声明和检查。能力还受调用身份、资源范围、插件实例状态和核心策略约束。注册关闭、账户停用等策略必须由核心最终判断。
+| Component | Owns |
+| --- | --- |
+| Marketplace | Discovery, publisher information, release metadata, and package distribution |
+| Host plugin manager | Admission, runtime instances, configuration, private storage, and lifecycle operations |
+| Host core services | Business records, authorization policy, and committed business transactions |
+| Plugin | Integration logic and contributed UI through declared host APIs |
 
-## 动态生命周期
+ZBoard owns accounts, credentials, orders, entitlements, traffic records, and node configuration publication. A client host owns its configuration, system permissions, connection lifecycle, and controlled kernel operations. These responsibilities remain with each host when it adopts the marketplace.
 
-每个接入市场的宿主需要独立实现并验证：
+## Capability model
 
-1. 安装前检查签名、摘要、包路径、宿主/协议/平台及能力，拒绝未知或跨宿主包。
-2. 安装和升级由宿主准备候选运行时、配置及私有数据迁移，成功后提交切换，失败不破坏旧实例与数据。
-3. 停用和卸载撤销该实例的调用资格与页面会话，终止运行时；已提交核心事务不因插件退出而回滚。
-4. 私有数据按宿主、插件及必要的实例范围隔离。迁移顺序、版本、校验和与执行结果由宿主记录，不能让插件自行修改核心表。
-5. 明确卸载保留和显式清除策略。清除私有数据不能删除核心业务事实；恢复旧代码必须检查配置和数据兼容性。
+A manifest declares the operations a plugin needs. The host validates those capabilities against its supported API, the caller's identity, resource scope, active plugin instance, and core policy. A marketplace listing supplies metadata; admission occurs inside the host.
 
-宿主数据 API 不等于插件可自行建表。ZBoard 当前提供宿主管理的加密 JSON 私有存储与声明式迁移，不提供任意 SQL 或插件自管表。若以后需要关系型扩展，由宿主另行定义受控 schema 和迁移契约。
+UI surfaces, runtime components, and capabilities describe different parts of a plugin. An `admin` page does not grant administrative business access. For OAuth, the core registration setting and account status still govern whether an external identity can create or access an account.
 
-## 运行与信任
+Plugins use versioned, dedicated interfaces. Database connections, arbitrary SQL, administrator tokens, node credentials, and unrestricted host commands are outside the plugin API.
 
-独立进程用于故障隔离，签名用于确认来源和完整性，两者都不等于不可信原生代码沙箱。当前 ZBoard 原生插件必须来自运营者信任的发布者。客户端应独立设计系统权限和资源隔离，不能复用后台权限或假定原生插件安全。
+## Lifecycle contract
 
-发布者密钥、OAuth 秘密值、宿主数据和开发产物不得进入源码或市场目录。目录签名者与包发布者的信任分别校验，不能因为市场返回一把公钥就自动信任它。
+| Operation | Host responsibility |
+| --- | --- |
+| Install | Validate signatures, contents, host/API/platform compatibility, and capabilities before admission. |
+| Enable | Prepare the runtime, verify its identity, and apply committed configuration before exposing contributions. |
+| Upgrade | Prepare candidate configuration, data migrations, and runtime; commit the switch or preserve the previous installation on failure. |
+| Disable | Revoke the instance's UI and call sessions and stop its runtime. |
+| Uninstall | Remove program assets according to the host's retention policy. |
+| Clear data | Remove plugin-owned configuration and private data without deleting core business records. |
 
-## 协议演进
+The host records migration order, versions, checksums, and results. Restoring an older program requires checking its compatibility with the stored data. Completed core transactions remain valid after a plugin stops.
 
-新增能力先在宿主定义鉴权、资源范围、幂等、提交结果、失败恢复与生命周期语义，再提供 SDK 和插件实现。共享市场不引入跨宿主全局权限，不把 Zero 内核改为第三方插件运行器。
+ZBoard currently provides encrypted JSON private storage and declarative migrations managed by the host. Relational extension schemas would require a separate host contract; plugins cannot create or migrate core tables themselves.
 
-当前实现、待实现契约与未来设想必须标明。已有宿主使用严格格式时，通过独立版本或兼容目录升级，不能把新字段直接塞入旧格式后声称兼容。
+## Trust and isolation
+
+Catalog signatures establish index provenance; package signatures establish artifact provenance and integrity. Hosts maintain trust for both roles. A public key included in a catalog does not automatically become trusted.
+
+ZBoard's current native service components run as trusted code in separate processes. The host does not provide an OS sandbox for arbitrary third-party binaries. Each future host must define its own runtime, system permission, and resource-isolation model.
+
+## Extending the API
+
+A new capability proposal should specify authorization, resource scope, idempotency, completion semantics, failure recovery, and behavior during lifecycle transitions. The host implements and tests the contract before plugins consume it.
+
+Shared distribution does not introduce global permissions across products. Cross-product integrations use controlled business APIs; plugin storage and host sessions remain separate. The marketplace design does not add a plugin SPI to the Zero kernel.
