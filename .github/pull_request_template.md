@@ -1,3 +1,10 @@
+## Target branch / 目标分支
+
+Use `main` for shared documentation, `zboard` for ZBoard plugins, and `znet-sink` for client plugins.
+共享文档指向 `main`，ZBoard 插件指向 `zboard`，客户端插件指向 `znet-sink`。
+
+- [ ] The PR base matches the scope / PR 基础分支与改动范围一致
+
 ## What changes? / 修改内容
 
 Describe the problem and the resulting behavior. Include the plugin ID and host where applicable.
