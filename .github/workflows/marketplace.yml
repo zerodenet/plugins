@@ -1,0 +1,41 @@
+name: Marketplace synchronization
+on:
+  issues:
+    types: [opened, edited, reopened, labeled, closed]
+  pull_request_target:
+    types: [closed]
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: marketplace-synchronization
+  cancel-in-progress: false
+jobs:
+  synchronize:
+    if: github.repository == 'zerodenet/plugins'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      # Privileged events always run reviewed default-branch code, never a
+      # contributor checkout or anything extracted from a plugin package.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m unittest discover -s tests
+      - run: python3 scripts/validate.py
+      - name: Maintain labels and propose catalog updates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/marketplace_sync.py

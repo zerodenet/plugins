@@ -8,7 +8,7 @@ A public registry of independently maintained plugins for [ZBoard](https://githu
 
 | Host | Registry | Available projects |
 | --- | --- | --- |
-| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — source available; signed release pending |
+| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — [v0.0.1 released](https://github.com/higanbana986/zboard-oauth/releases/tag/v0.0.1); [listing under review](https://github.com/zerodenet/plugins/issues/1) |
 | ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | No submissions yet |
 
 OAuth connects GitHub, Google and custom OAuth2 / OpenID Connect providers to ZBoard. Its source, tests, configuration guides and release workflows are maintained in its independent repository. ZBoard retains control of account creation, registration policy and sessions.
@@ -37,6 +37,7 @@ All maintained registry data and policies live on `main`. Plugin source and bina
 
 ## Documentation
 
+- [Submission and update automation](docs/automation.md)
 - [Registry format](docs/registry-format.md)
 - [Publishing and review](docs/publishing.md)
 - [Host responsibilities](docs/governance.md)

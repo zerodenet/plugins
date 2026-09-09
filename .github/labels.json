@@ -1,0 +1,10 @@
+[
+  {"name":"plugin:submission","color":"5319E7","description":"Plugin listing or release submission / 插件收录申请"},
+  {"name":"plugin:update","color":"1D76DB","description":"Upstream release update / 上游发行更新"},
+  {"name":"host:zboard","color":"0052CC","description":"ZBoard plugin / 面板插件"},
+  {"name":"host:znet-sink","color":"0E8A16","description":"ZNet Sink plugin / 客户端插件"},
+  {"name":"status:needs-info","color":"D93F0B","description":"Metadata needs correction / 需要补充或修正元数据"},
+  {"name":"status:in-review","color":"FBCA04","description":"Validated metadata awaiting maintainer review / 等待维护者审核"},
+  {"name":"status:accepted","color":"0E8A16","description":"Release recorded in the main catalog / 已收录到主分支目录"},
+  {"name":"status:closed","color":"BFD4F2","description":"Submission or proposal closed without inclusion / 已关闭但未收录"}
+]

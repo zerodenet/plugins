@@ -16,6 +16,9 @@ Submit the release using the issue form or PR template. Update only the relevant
 
 CI validates repository metadata and never executes submitted packages. Maintainers independently verify publisher/key ownership, release-to-source correspondence, package signatures, digests and host test evidence. A green source-validation check alone is insufficient for an installable listing.
 
+
+An issue containing the release metadata URL is validated automatically and linked to a generated review PR. After first inclusion, scheduled checks propose new stable releases without a cross-repository publisher token. Labels track validation, review and inclusion; they do not authorize a merge. See [marketplace automation](automation.md) for setup and failure handling.
+
 ## Signed installation feeds
 
 The source catalogs are not directly installable. A distribution publisher must select host- and platform-compatible reviewed artifacts, create the host's signed catalog, serve it over an accepted HTTPS download path and renew it before expiry. Catalog signing uses a market key distinct from plugin publisher keys.

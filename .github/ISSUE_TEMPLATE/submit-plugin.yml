@@ -1,12 +1,13 @@
 name: Submit a plugin / 提交插件
 description: Request a listing or release update in the marketplace. / 申请收录插件或更新发行版本。
 title: '[Plugin] '
+labels: ['plugin:submission']
 body:
   - type: markdown
     attributes:
       value: |
-        Publish and sign the plugin in its own repository first. Attach marketplace-entry.json or submit a PR using templates/plugin-entry.json.
-        先在独立仓库签名发布插件，再附上 marketplace-entry.json 或参照 templates/plugin-entry.json 提交 PR。不要提交源码、安装包或私钥。
+        Publish and sign the plugin in its own repository first. Provide the GitHub Release URL for marketplace-entry.json. Automation validates it and opens a review PR.
+        先在独立仓库签名发布插件，再提供 marketplace-entry.json 的 GitHub Release 链接，自动化会校验并生成审核 PR。不要提交源码、安装包或私钥。
   - type: dropdown
     id: host
     attributes:
@@ -34,11 +35,12 @@ body:
       label: Release URL and source commit / 发行地址与源码提交
     validations:
       required: true
-  - type: textarea
+  - type: input
     id: metadata
     attributes:
-      label: Release metadata / 发行元数据
-      description: Attach marketplace-entry.json or include platform, immutable URL, SHA-256 and byte size for every artifact. / 附上元数据文件，或填写各平台产物的固定地址、SHA-256 与字节数。
+      label: Release metadata URL / 发行元数据链接
+      description: An immutable GitHub Release asset URL, not a branch file. / 提供 GitHub Release 的固定产物链接，不要使用分支文件地址。
+      placeholder: https://github.com/owner/plugin/releases/download/v0.0.1/marketplace-entry.json
     validations:
       required: true
   - type: textarea

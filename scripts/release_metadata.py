@@ -1,0 +1,79 @@
+"""Validate GitHub release facts and append metadata without running plugins."""
+import copy
+import hashlib
+import re
+
+from github_api import decode_json, segment
+from validate import HOSTS, TAG, require, validate, validate_entry, validate_transition
+
+METADATA_URL = re.compile(r'https://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)/releases/download/(' + TAG + r')/marketplace-entry\.json')
+
+
+def submission(body):
+    urls = {match.group(0) for match in METADATA_URL.finditer(body or '')}
+    require(len(urls) == 1, 'Provide exactly one GitHub Release marketplace-entry.json URL / 请提供唯一的发行元数据链接')
+    match = METADATA_URL.fullmatch(urls.pop())
+    return match[1], match[2]
+
+
+def infer_host(entry):
+    hosts = {host for release in entry.get('releases', []) for host in HOSTS if host in release.get('requires', {})}
+    require(len(hosts) == 1, 'metadata must identify exactly one host')
+    return hosts.pop()
+
+
+def release_entry(github, repository, tag):
+    release = github.api(f'/repos/{repository}/releases/tags/{segment(tag)}')
+    require(not release['draft'] and not release['prerelease'] and release['tag_name'] == tag, 'only published stable releases are synchronized')
+    assets = list(github.pages(f'/repos/{repository}/releases/{release["id"]}/assets'))
+    records = [asset for asset in assets if asset['name'] == 'marketplace-entry.json']
+    require(len(records) == 1, 'release needs one marketplace-entry.json asset')
+    record = records[0]
+    expected_url = f'https://github.com/{repository}/releases/download/{tag}/marketplace-entry.json'
+    require(record['browser_download_url'] == expected_url, 'metadata asset repository or tag mismatch')
+    raw = github.asset(expected_url, record['size'])
+    require(record.get('digest') == 'sha256:' + hashlib.sha256(raw).hexdigest(), 'metadata digest does not match GitHub release asset')
+    entry = decode_json(raw)
+    host = infer_host(entry)
+    validate_entry(entry, host)
+    require(entry['repository'] == f'https://github.com/{repository}', 'metadata must belong to the publishing repository')
+    require(len(entry['releases']) == 1, 'release metadata must describe exactly its own release')
+    version = entry['releases'][0]
+    require(version['version'] == tag == entry['source']['version'], 'release version differs from metadata')
+    require(version['source_commit'] == entry['source']['commit'], 'source commits differ')
+    ref = github.api(f'/repos/{repository}/git/ref/tags/{segment(tag)}')['object']
+    for _ in range(4):
+        if ref['type'] != 'tag':
+            break
+        ref = github.api(f'/repos/{repository}/git/tags/{ref["sha"]}')['object']
+    require(ref['type'] == 'commit' and ref['sha'] == version['source_commit'], 'tag does not resolve to the declared source commit')
+    by_url = {asset['browser_download_url']: asset for asset in assets}
+    for artifact in version['artifacts']:
+        asset = by_url.get(artifact['url'])
+        require(asset is not None and asset['size'] == artifact['size']
+                and asset.get('digest') == 'sha256:' + artifact['sha256'], 'package must match a GitHub asset size and digest in this release')
+    return host, entry
+
+
+def append_entry(catalog, entry, host):
+    validate(catalog, host)
+    validate_entry(entry, host)
+    result = copy.deepcopy(catalog)
+    old = next((item for item in result['plugins'] if item['id'] == entry['id']), None)
+    candidate = copy.deepcopy(entry)
+    if old:
+        require(old['repository'] == entry['repository'], 'repository reassignment requires a separate review')
+        releases = {release['version']: release for release in old['releases']}
+        for release in entry['releases']:
+            if release['version'] in releases:
+                require(releases[release['version']] == release, 'published release metadata cannot change')
+        if all(release['version'] in releases for release in entry['releases']):
+            require(old['publisher'] == entry['publisher'], 'publisher key cannot change')
+            return result
+        candidate['releases'] = old['releases'] + [release for release in entry['releases'] if release['version'] not in releases]
+        result['plugins'][result['plugins'].index(old)] = candidate
+    else:
+        result['plugins'].append(candidate)
+    validate(result, host)
+    validate_transition(catalog, result)
+    return result
