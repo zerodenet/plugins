@@ -8,10 +8,10 @@ A public registry of independently maintained plugins for [ZBoard](https://githu
 
 | Host | Registry | Available projects |
 | --- | --- | --- |
-| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — repository setup in progress; no signed release |
+| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — source available; signed release pending |
 | ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | No submissions yet |
 
-OAuth connects GitHub, Google and custom OAuth2 / OpenID Connect providers to ZBoard. Its independent repository is the destination for source, tests, configuration guides and release workflows. A listing is added after its source references are publicly accessible. ZBoard retains control of account creation, registration policy and sessions.
+OAuth connects GitHub, Google and custom OAuth2 / OpenID Connect providers to ZBoard. Its source, tests, configuration guides and release workflows are maintained in its independent repository. ZBoard retains control of account creation, registration policy and sessions.
 
 The JSON files above are reviewed source records. They are not signed installation feeds and must not be configured as ZBoard's `plugins.catalog_url`. A plugin with an empty `releases` array is a source listing, not an installable release. See [installation and trust](docs/usage.md).
 

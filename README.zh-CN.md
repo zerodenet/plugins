@@ -8,10 +8,10 @@
 
 | 宿主 | 注册表 | 已有项目 |
 | --- | --- | --- |
-| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — 仓库准备中，尚无签名发行 |
+| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — 源码可用，签名发行待发布 |
 | ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | 暂无提交 |
 
-OAuth 将 GitHub、Google 和自定义 OAuth2 / OpenID Connect 提供方接入 ZBoard。源码、测试、配置指南和发行流程将由独立仓库维护，源码引用公开可访问后再收录条目。账户创建、注册策略及会话仍由 ZBoard 核心掌管。
+OAuth 将 GitHub、Google 和自定义 OAuth2 / OpenID Connect 提供方接入 ZBoard。源码、测试、配置指南和发行流程均在独立仓库维护。账户创建、注册策略及会话仍由 ZBoard 核心掌管。
 
 上述 JSON 文件是经评审的源记录，不是签名安装目录，不能直接填入 ZBoard 的 `plugins.catalog_url`。`releases` 数组为空的插件只提供源码入口，不代表已有可安装版本。参见[安装与信任](docs/usage.zh-CN.md)。
 

@@ -1,5 +1,26 @@
 {
   "schema_version": 1,
   "host": "zboard",
-  "plugins": []
+  "plugins": [
+    {
+      "id": "zboard.oauth",
+      "name": "OAuth for ZBoard",
+      "description": "Sign in to ZBoard with GitHub, Google or a custom OAuth2 / OpenID Connect provider.",
+      "repository": "https://github.com/higanbana986/zboard-oauth",
+      "license": "MPL-2.0",
+      "maintainers": [
+        "higanbana986"
+      ],
+      "publisher": {
+        "id": "higanbana986",
+        "public_key": null
+      },
+      "source": {
+        "version": "v0.0.1",
+        "commit": "2dfb5544a05512cb2594673c02137415db0d8d46",
+        "manifest": "manifest.json"
+      },
+      "releases": []
+    }
+  ]
 }
