@@ -13,14 +13,68 @@
       ],
       "publisher": {
         "id": "higanbana986",
-        "public_key": null
+        "public_key": "k+s2/1J6/R9VSNbc2bcX3C8KRBXVZ+IrSKFButaR4Q4="
       },
       "source": {
         "version": "v0.0.1",
-        "commit": "2dfb5544a05512cb2594673c02137415db0d8d46",
+        "commit": "6d48f3b2f19361b0abbdae1b7d24722cc466385a",
         "manifest": "manifest.json"
       },
-      "releases": []
+      "releases": [
+        {
+          "version": "v0.0.1",
+          "source_commit": "6d48f3b2f19361b0abbdae1b7d24722cc466385a",
+          "requires": {
+            "zboard": ">=0.0.1 <0.1.0",
+            "recommended_zboard_version": "0.0.1",
+            "tested_zboard_versions": [
+              "0.0.1"
+            ],
+            "plugin_protocol": 1,
+            "ui_bridge": 1
+          },
+          "surfaces": [
+            "admin"
+          ],
+          "capabilities": [
+            "zboard.ui.page.v1",
+            "zboard.config.v1",
+            "zboard.identity.provider.v1"
+          ],
+          "artifacts": [
+            {
+              "platform": "linux-amd64",
+              "url": "https://github.com/higanbana986/zboard-oauth/releases/download/v0.0.1/zboard.oauth-v0.0.1-linux-amd64.zbplugin",
+              "sha256": "fb087e7fd51c7d76d634b7a43f81c5f097ba43a9b221a1d6da17aac1c52b528f",
+              "size": 5491102
+            },
+            {
+              "platform": "linux-arm64",
+              "url": "https://github.com/higanbana986/zboard-oauth/releases/download/v0.0.1/zboard.oauth-v0.0.1-linux-arm64.zbplugin",
+              "sha256": "685fcbb6c8fa967d0198341e16809c022ac86976161a42f366ddb9fa0e2e712d",
+              "size": 4989973
+            },
+            {
+              "platform": "darwin-amd64",
+              "url": "https://github.com/higanbana986/zboard-oauth/releases/download/v0.0.1/zboard.oauth-v0.0.1-darwin-amd64.zbplugin",
+              "sha256": "5f22baa043528721830041432f3a3451138bb80926c056a29afad71d8b26fba3",
+              "size": 5622952
+            },
+            {
+              "platform": "darwin-arm64",
+              "url": "https://github.com/higanbana986/zboard-oauth/releases/download/v0.0.1/zboard.oauth-v0.0.1-darwin-arm64.zbplugin",
+              "sha256": "31ebde7e77441f81a23644e146ce6e2aab5b781a299ae2cdde7694d6b4704352",
+              "size": 5223565
+            },
+            {
+              "platform": "windows-amd64",
+              "url": "https://github.com/higanbana986/zboard-oauth/releases/download/v0.0.1/zboard.oauth-v0.0.1-windows-amd64.zbplugin",
+              "sha256": "648ff13a61c60ca1fecd667978dea08ef281324426b7d594de0c2d58f3a41beb",
+              "size": 5655303
+            }
+          ]
+        }
+      ]
     }
   ]
 }
