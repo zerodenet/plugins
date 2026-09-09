@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/zerodenet/plugins/zboard/oauth/internal/config"
 	pluginv1 "github.com/zerodenet/zboard/backend/pkg/pluginapi/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"zboard.local/plugins/oauth/internal/config"
 )
 
 func (s *Server) ListIdentityProviders(context.Context, *pluginv1.Empty) (*pluginv1.IdentityProviderList, error) {

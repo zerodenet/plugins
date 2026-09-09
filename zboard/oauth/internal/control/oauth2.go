@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/zerodenet/plugins/zboard/oauth/internal/config"
 	pluginv1 "github.com/zerodenet/zboard/backend/pkg/pluginapi/v1"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc/codes"
@@ -11,7 +12,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"zboard.local/plugins/oauth/internal/config"
 )
 
 func tokenAuthStyle(method string) oauth2.AuthStyle {

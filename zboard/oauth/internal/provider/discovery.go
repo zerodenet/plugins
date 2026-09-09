@@ -11,7 +11,7 @@ import (
 	"slices"
 	"strings"
 
-	"zboard.local/plugins/oauth/internal/config"
+	"github.com/zerodenet/plugins/zboard/oauth/internal/config"
 )
 
 type Metadata struct {

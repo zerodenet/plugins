@@ -10,7 +10,7 @@ import (
 	"net/netip"
 	"time"
 
-	"zboard.local/plugins/oauth/internal/config"
+	"github.com/zerodenet/plugins/zboard/oauth/internal/config"
 )
 
 type resolver interface {

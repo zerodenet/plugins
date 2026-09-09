@@ -11,8 +11,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"zboard.local/plugins/oauth/internal/config"
-	"zboard.local/plugins/oauth/internal/provider"
+	"github.com/zerodenet/plugins/zboard/oauth/internal/config"
+	"github.com/zerodenet/plugins/zboard/oauth/internal/provider"
 )
 
 const ID = "zboard.oauth"

@@ -1,4 +1,4 @@
-module zboard.local/plugins/oauth
+module github.com/zerodenet/plugins/zboard/oauth
 
 go 1.26.0
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"zboard.local/plugins/oauth/internal/config"
+	"github.com/zerodenet/plugins/zboard/oauth/internal/config"
 )
 
 type transportFunc func(*http.Request) (*http.Response, error)

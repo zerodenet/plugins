@@ -17,13 +17,21 @@ def run(*args, **kwargs):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--zboard', type=Path, default=Path(os.environ.get('ZBOARD_DIR', ROOT.parent.parent)))
+    parser.add_argument('--zboard', type=Path, default=os.environ.get('ZBOARD_DIR'),
+                        help='ZBoard checkout containing backend/tools/pluginpackager; or set ZBOARD_DIR')
     parser.add_argument('--platform', help='GOOS-GOARCH; defaults to this Go toolchain host')
     keys = parser.add_mutually_exclusive_group(required=True)
     keys.add_argument('--key', type=Path, help='base64 Ed25519 private key, outside source control')
     keys.add_argument('--dev-key', action='store_true', help='create/reuse an ignored local development key')
-    parser.add_argument('--key-id', default='oauth-local-dev')
+    parser.add_argument('--key-id', help='publisher key ID; required with --key')
     args = parser.parse_args()
+    if args.zboard is None:
+        parser.error('provide --zboard or ZBOARD_DIR; the host is maintained in a separate repository')
+    if not args.dev_key and (not args.key_id or args.key_id == 'oauth-local-dev'):
+        parser.error('--key requires an explicit non-development --key-id')
+    if args.dev_key and args.key_id not in (None, 'oauth-local-dev'):
+        parser.error('--dev-key only uses the oauth-local-dev publisher ID')
+    args.key_id = args.key_id or 'oauth-local-dev'
     backend = args.zboard.resolve() / 'backend'
     if not (backend / 'tools/pluginpackager/main.go').is_file():
         parser.error('--zboard must contain the pluginpackager tool (feature/plugin or later)')
