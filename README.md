@@ -1,50 +1,37 @@
-# ZeroDeNet Plugins
+# ZNet Sink Plugins
 
 **English** · [简体中文](README.zh-CN.md)
 
-The plugin platform for the ZeroDeNet ecosystem. This repository brings together the project documentation, host-specific plugin collections, and the design of a shared marketplace for [ZBoard](https://github.com/zerodenet/zboard) and [ZNet Sink](https://github.com/zerodenet/znet-sink).
+The client plugin branch of [ZeroDeNet Plugins](https://github.com/zerodenet/plugins/tree/main), dedicated to extensions for [ZNet Sink](https://github.com/zerodenet/znet-sink).
 
-## Repository branches
+## Status
 
-| Branch | Purpose |
-| --- | --- |
-| **main** | Platform overview, shared architecture, contribution policies, and marketplace proposals |
-| [**zboard**](https://github.com/zerodenet/plugins/tree/zboard) | ZBoard plugins, configuration guides, builds, and tests |
-| [**znet-sink**](https://github.com/zerodenet/plugins/tree/znet-sink) | Client plugin development and integration documentation |
+This branch establishes the client integration scope and contribution process. The client plugin API, runtime, and package format are still under design. There are no installable client plugins or runtime checks in this branch yet.
 
-This branch is the documentation entry point. Each host collection is maintained and released from its own branch. Contributions target the branch responsible for the change.
+## Scope
 
-## Plugin collections
+Client plugins will extend ZNet Sink through APIs owned by the client. Configuration changes, system permissions, connection management, and kernel control remain subject to the client's services and policies. Marketplace participation follows the shared distribution model while runtime compatibility is determined by the client.
 
-### ZBoard
+Read [Client integration](docs/client-integration.md) for the contracts needed before implementation.
 
-The [OAuth plugin](https://github.com/zerodenet/plugins/tree/zboard/zboard/oauth) connects GitHub, Google, and custom OAuth2 / OpenID Connect providers to ZBoard's sign-in and registration flows. Source builds and integration tests are available on the `zboard` branch.
+## Development
 
-### ZNet Sink
+Use `znet-sink` as the base and merge target for client plugin changes. Once the host contract is implemented, plugin source belongs under `znet-sink/<plugin>/`, together with its configuration guide, dependencies, build process, and tests.
 
-The [client branch](https://github.com/zerodenet/plugins/tree/znet-sink) establishes the scope for client plugins. Its host API and plugin runtime are under design; no client plugin implementation is available yet.
+```sh
+git clone --branch znet-sink https://github.com/zerodenet/plugins.git
+cd plugins
+```
 
-Signed releases and a public marketplace catalog are planned. The [marketplace proposal](docs/marketplace-design.md) describes shared discovery and distribution across hosts.
+Until implementation begins, validation covers documentation links, English/Chinese consistency, and agreement with the host design. Runtime and packaging checks will be introduced with the code they validate.
 
-## Architecture
+## Project resources
 
-Plugins extend their host through dedicated APIs. Each application owns permission checks, configuration, private data, installation, and upgrades. Core business rules remain in the application that owns them.
-
-The marketplace organizes releases by plugin, host, and platform. Installation decisions and runtime behavior are governed by each host's contracts. Read [Plugin architecture](docs/governance.md) for those responsibilities.
-
-## Documentation
-
-- [Documentation index](docs/README.md)
-- [Choosing and operating plugins](docs/usage.md)
-- [Development model](docs/development.md)
-- [Publishing model](docs/publishing.md)
-- [Contribution guide](CONTRIBUTING.md) and [project governance](GOVERNANCE.md)
-
-Host-specific setup, commands, and troubleshooting are maintained on the host branches.
-
-## Community
-
-Use [GitHub Issues](https://github.com/zerodenet/plugins/issues) for bug reports and design proposals. Include the host and plugin when reporting a problem. Follow [SECURITY.md](SECURITY.md) for vulnerability reports.
+- [Client documentation](docs/README.md)
+- [Contributing](CONTRIBUTING.md) and [project governance](GOVERNANCE.md)
+- [Security policy](SECURITY.md)
+- [Platform overview](https://github.com/zerodenet/plugins/tree/main)
+- [ZBoard plugin collection](https://github.com/zerodenet/plugins/tree/zboard)
 
 ## License
 

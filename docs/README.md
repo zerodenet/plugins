@@ -1,24 +1,16 @@
-# Documentation
+# Client documentation
 
 **English** · [简体中文](README.zh-CN.md)
 
-## Platform
+[Client integration](client-integration.md) defines the decisions required for a ZNet Sink plugin runtime. It is the starting point for proposals on this branch.
 
-- [Choosing and operating plugins](usage.md)
-- [Development model and branch ownership](development.md)
+## Shared references
+
 - [Plugin architecture](governance.md)
-- [Publishing model](publishing.md)
-- [Shared marketplace proposal](marketplace-design.md) — draft
+- [Marketplace proposal](marketplace-design.md)
+- [Development model](development.md) and [publishing model](publishing.md)
+- [Contributing](../CONTRIBUTING.md), [governance](../GOVERNANCE.md), and [security](../SECURITY.md)
 
-## Host collections
+These documents describe requirements and project processes. Client installation, configuration, and runtime guides will accompany the implementation.
 
-| Host | Documentation |
-| --- | --- |
-| ZBoard | [Collection](https://github.com/zerodenet/plugins/tree/zboard), [installation](https://github.com/zerodenet/plugins/blob/zboard/docs/usage.md), [development](https://github.com/zerodenet/plugins/blob/zboard/docs/development.md), [publishing](https://github.com/zerodenet/plugins/blob/zboard/docs/publishing.md) |
-| ZNet Sink | [Client integration scope](https://github.com/zerodenet/plugins/blob/znet-sink/docs/client-integration.md) |
-
-OAuth setup and its field reference are maintained in the [ZBoard collection](https://github.com/zerodenet/plugins/tree/zboard/zboard/oauth).
-
-## Project
-
-[Contributing](../CONTRIBUTING.md) · [Governance](../GOVERNANCE.md) · [Security](../SECURITY.md)
+The [platform documentation](https://github.com/zerodenet/plugins/tree/main) and [ZBoard guides](https://github.com/zerodenet/plugins/tree/zboard/docs) are maintained on their respective branches.

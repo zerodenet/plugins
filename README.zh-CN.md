@@ -1,50 +1,37 @@
-# ZeroDeNet Plugins
+# ZNet Sink 插件
 
 [English](README.md) · **简体中文**
 
-ZeroDeNet 生态的插件平台。本仓库统一维护项目文档、各宿主的插件集合，以及面向 [ZBoard](https://github.com/zerodenet/zboard) 和 [ZNet Sink](https://github.com/zerodenet/znet-sink) 的共享市场设计。
+[ZeroDeNet Plugins](https://github.com/zerodenet/plugins/blob/main/README.zh-CN.md) 的客户端插件分支，专门维护 [ZNet Sink](https://github.com/zerodenet/znet-sink) 扩展。
 
-## 仓库分支
+## 状态
 
-| 分支 | 职责 |
-| --- | --- |
-| **main** | 平台介绍、共享架构、贡献规范和市场提案 |
-| [**zboard**](https://github.com/zerodenet/plugins/tree/zboard) | ZBoard 插件、配置指南、构建和测试 |
-| [**znet-sink**](https://github.com/zerodenet/plugins/tree/znet-sink) | 客户端插件开发和集成文档 |
+当前分支建立客户端接入范围与贡献流程。客户端插件 API、运行时和包格式仍在设计，尚无可安装的客户端插件或运行时检查。
 
-当前分支是文档入口，各宿主插件集合在自己的分支中维护和发行。贡献应提交到负责相应改动的分支。
+## 范围
 
-## 插件集合
+客户端插件将通过 ZNet Sink 自己的 API 提供扩展。配置变更、系统权限、连接管理和内核控制遵循客户端服务及策略。市场接入使用共享分发模型，运行兼容性由客户端决定。
 
-### ZBoard
+实现前所需的契约见[客户端接入](docs/client-integration.zh-CN.md)。
 
-[OAuth 插件](https://github.com/zerodenet/plugins/blob/zboard/zboard/oauth/README.zh-CN.md)将 GitHub、Google 和自定义 OAuth2 / OpenID Connect 提供方接入 ZBoard 登录与注册流程。源码构建和集成测试位于 `zboard` 分支。
+## 开发
 
-### ZNet Sink
+客户端插件改动以 `znet-sink` 为基础和合入目标。宿主契约实现后，源码放在 `znet-sink/<plugin>/`，同时提供配置指南、依赖、构建流程和测试。
 
-[客户端分支](https://github.com/zerodenet/plugins/blob/znet-sink/README.zh-CN.md)定义客户端插件的接入范围。宿主 API 和插件运行时正在设计，尚无客户端插件实现。
+```sh
+git clone --branch znet-sink https://github.com/zerodenet/plugins.git
+cd plugins
+```
 
-签名发行版本和公共市场目录已列入规划。[市场提案](docs/marketplace-design.zh-CN.md)描述跨宿主的共享发现和分发。
+实现开始前，验证文档链接、中英文一致性和与宿主设计的对应关系。运行时与打包检查随其所验证的代码一同引入。
 
-## 架构
+## 项目资源
 
-插件通过专用 API 扩展宿主。各应用负责权限检查、配置、私有数据、安装与升级；核心业务规则由所属应用执行。
-
-市场按插件、宿主和平台组织发行版本，安装决策与运行行为遵循各宿主契约。职责划分见[插件架构](docs/governance.zh-CN.md)。
-
-## 文档
-
-- [文档索引](docs/README.zh-CN.md)
-- [插件选择与运维](docs/usage.zh-CN.md)
-- [开发模式](docs/development.zh-CN.md)
-- [发布模式](docs/publishing.zh-CN.md)
+- [客户端文档](docs/README.zh-CN.md)
 - [贡献指南](CONTRIBUTING.zh-CN.md)与[项目治理](GOVERNANCE.zh-CN.md)
-
-宿主专属的配置、命令和问题排查文档在各自分支维护。
-
-## 社区
-
-通过 [GitHub Issues](https://github.com/zerodenet/plugins/issues)报告问题或提交设计提案，问题报告应注明宿主与插件。安全漏洞按[安全政策](SECURITY.zh-CN.md)报告。
+- [安全政策](SECURITY.zh-CN.md)
+- [平台介绍](https://github.com/zerodenet/plugins/blob/main/README.zh-CN.md)
+- [ZBoard 插件集合](https://github.com/zerodenet/plugins/blob/zboard/README.zh-CN.md)
 
 ## 许可证
 
