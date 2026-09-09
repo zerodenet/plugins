@@ -2,8 +2,9 @@ name: Plugin checks
 
 on:
   push:
-    branches: [main]
+    branches: [zboard]
   pull_request:
+    branches: [zboard]
 
 permissions:
   contents: read

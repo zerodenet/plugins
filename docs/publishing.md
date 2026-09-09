@@ -6,7 +6,7 @@ This guide defines the release process for maintained plugins. Public distributi
 
 ## Prepare a release
 
-Select a reviewed source commit with passing checks. Record:
+Select a reviewed source commit on `zboard` with passing checks. Record:
 
 | Release information | Required detail |
 | --- | --- |

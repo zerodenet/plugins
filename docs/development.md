@@ -2,6 +2,8 @@
 
 **English** · [简体中文](development.zh-CN.md)
 
+This guide applies to the `zboard` branch. Clone with `git clone --branch zboard https://github.com/zerodenet/plugins.git` and target implementation PRs at `zboard`. Platform documentation lives on [main](https://github.com/zerodenet/plugins/tree/main).
+
 ## Repository layout
 
 ```text

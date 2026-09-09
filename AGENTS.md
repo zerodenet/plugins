@@ -2,32 +2,28 @@
 
 **English** · [简体中文](AGENTS.zh-CN.md)
 
-## Project scope
+## Branch ownership
 
-Read `README.md`, `CONTRIBUTING.md`, and `docs/governance.md` before changing the repository. Read `docs/publishing.md` when working on releases.
+Read `README.md`, `CONTRIBUTING.md`, and `docs/governance.md` before changes. `main` contains the platform overview and shared documentation only. Plugin source, packaging scripts, and runtime CI belong to the corresponding `zboard` or `znet-sink` branch. Check the current branch before editing.
 
-Plugin source lives under `<host>/<plugin>/`; each plugin owns its manifest, dependencies, and tests. Host implementations and public SDKs remain in their respective repositories. Preserve plugin IDs, publisher identity, and existing history. Do not initialize nested Git repositories.
+Keep source under `<host>/<plugin>/` on the host branch. Preserve plugin IDs, publisher identity, public module paths, and historical commits. Host implementations and public SDKs remain in their respective repositories. Do not initialize nested Git repositories.
 
 ## Architecture
 
-Market metadata does not grant host capabilities. Each host owns permission checks, core business state, private storage, and lifecycle transactions. Plugins consume dedicated, versioned host APIs. Do not introduce direct database access, arbitrary host commands, administrator tokens, or node credentials.
-
-A shared marketplace does not imply a shared runtime. Keep ZBoard APIs out of the client and Zero kernel. New capabilities require a host contract and validation before plugin integration.
+Each host owns capability checks, core business state, private storage, and lifecycle transactions. Plugins consume dedicated, versioned host APIs. Do not introduce database access, arbitrary host commands, administrator tokens, or node credentials. A shared marketplace does not imply a shared runtime or global permissions.
 
 ## Documentation
 
-English is the default; maintain a corresponding `.zh-CN.md` page for public documentation. Include reciprocal language links and keep translated navigation in the selected language. Update both versions when behavior, commands, or requirements change.
-
-Write documentation for users and contributors. Keep local migration notes, workstation paths, author-account setup, and task reports outside public guides. Preserve technical limits in the relevant reference or architecture page. Mark proposed contracts as drafts.
+English is the default. Maintain matching `.zh-CN.md` pages, reciprocal language links, and consistent commands and configuration examples. Links to another branch must name that branch explicitly. Keep workstation information and task reports outside public guides. Mark proposals as drafts.
 
 ## Validation
 
-Run `sh scripts/check.sh` from the root. For documentation changes, also check links, language pairs, and command examples. For packaging changes, build with an explicitly selected host checkout and inspect the package manifest, signature, and file list.
+On `main`, check documentation links, language pairs, examples, and the absence of tracked implementation files. On `zboard`, run `sh scripts/check.sh`; packaging changes also require a signed development package check. On `znet-sink`, validate the documentation until an implementation provides its own checks; do not claim client runtime coverage before it exists.
 
-Use `--zboard` or `ZBOARD_DIR` to locate the host packager. Keep `.local/`, keys, databases, generated packages, and local Go workspaces untracked. Development keys are for test hosts only.
+Use `--zboard` or `ZBOARD_DIR` for the host packager. Keep local workspaces, credentials, runtime data, and generated packages untracked. Development keys are for test hosts only.
 
 ## Delivery
 
-Inspect staged files and verify the effective Git author and committer before committing. Use repository-local settings for checkout-specific identity requirements; do not change global identity. Follow the PR process and keep shared history linear.
+Verify the Git author and committer against any checkout-specific user requirements. Use repository-local identity settings. Target PRs at the branch that owns the change and keep each long-lived history linear. Shared documents may be synchronized as isolated changes; do not merge host branches into `main` or apply a branch-layout removal to a host implementation.
 
-Report automated, host integration, target-platform, and live-provider validation separately. Verify publication before claiming a catalog or release is available. Source changes do not implicitly publish a plugin release.
+Source changes do not publish a plugin release. Record automated, host, target-platform, and live-provider verification separately.

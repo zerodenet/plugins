@@ -12,28 +12,31 @@
 
 ## 开发流程
 
-可以 Fork 仓库；拥有写权限的贡献者也可以直接使用分支。从最新的 `main` 开始：
+可以 Fork 仓库；拥有写权限的贡献者也可以直接使用分支。按修改范围选择基础分支和 PR 目标：
+
+| 范围 | 基础与合入分支 |
+| --- | --- |
+| 平台介绍、共享规范和市场提案 | `main` |
+| ZBoard 插件、宿主指南与构建检查 | `zboard` |
+| ZNet Sink 插件与客户端集成 | `znet-sink` |
+
+例如，修改 ZBoard 插件文档时：
 
 ```sh
-git switch main
+git switch zboard
 git pull --ff-only
 git switch -c docs/installation-guide
 ```
 
 每个 Pull Request 聚焦一项改动。沿用现有风格，更新受影响的文档，并为行为变化补充测试。本地环境设置见[开发指南](docs/development.zh-CN.md)。
 
-提交前运行：
-
-```sh
-sh scripts/check.sh
-git diff --check
-```
+提交前运行所属分支提供的检查。`zboard` 分支使用 `sh scripts/check.sh`；文档改动检查链接、语言配对和示例一致性。所有分支均运行 `git diff --check`。
 
 使用自己的 Git 作者身份。源码和依赖锁定文件应纳入版本管理；凭据、本地 workspace、运行数据和生成的安装包应保留在版本管理之外。
 
 ## 新增插件
 
-官方插件源码放在 `<host>/<plugin>/`，并提供：
+官方插件源码只放在对应宿主分支，目录沿用 `<host>/<plugin>/`。当前 OAuth 位于 `zboard` 分支的 `zboard/oauth/`。新增插件应提供：
 
 - README：介绍使用场景、支持的宿主版本、配置方法和限制。
 - Manifest：声明稳定的插件 ID、所需能力和入口。
@@ -52,4 +55,4 @@ git diff --check
 
 说明用户能观察到的变化、兼容性影响和已完成的验证，分别列出自动测试、宿主集成测试和真实提供方联调。涉及公开契约时，维护者可能要求拆分改动或补充覆盖。
 
-评审和检查通过后，由维护者使用 squash 或 rebase 合入，保持 `main` 线性。发行版本遵循独立的[发布流程](docs/publishing.zh-CN.md)。决策方式和社区协作约定见[项目治理](GOVERNANCE.zh-CN.md)。
+评审和检查通过后，由维护者使用 squash 或 rebase 合入对应目标，保持各长期分支的历史线性。宿主分支不整体合入 `main`；共享文档按文件或独立提交同步，避免带入插件代码或删除另一分支的实现。发行版本遵循独立的[发布流程](docs/publishing.zh-CN.md)。决策方式和社区协作约定见[项目治理](GOVERNANCE.zh-CN.md)。

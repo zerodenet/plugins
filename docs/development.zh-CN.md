@@ -2,6 +2,8 @@
 
 [English](development.md) · **简体中文**
 
+当前文档适用于 `zboard` 分支。克隆时使用 `git clone --branch zboard https://github.com/zerodenet/plugins.git`，实现 PR 指向 `zboard`。平台文档位于 [main](https://github.com/zerodenet/plugins/blob/main/README.zh-CN.md)。
+
 ## 仓库结构
 
 ```text
