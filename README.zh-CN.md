@@ -8,7 +8,7 @@
 
 | 宿主 | 注册表 | 已有项目 |
 | --- | --- | --- |
-| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — 源码可用，签名发行待发布 |
+| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — [v0.0.1 已发布](https://github.com/higanbana986/zboard-oauth/releases/tag/v0.0.1)，[收录审核中](https://github.com/zerodenet/plugins/issues/1) |
 | ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | 暂无提交 |
 
 OAuth 将 GitHub、Google 和自定义 OAuth2 / OpenID Connect 提供方接入 ZBoard。源码、测试、配置指南和发行流程均在独立仓库维护。账户创建、注册策略及会话仍由 ZBoard 核心掌管。
@@ -37,6 +37,7 @@ docs/           注册表格式、发行规范及宿主边界
 
 ## 文档
 
+- [收录与更新自动化](docs/automation.zh-CN.md)
 - [注册表格式](docs/registry-format.zh-CN.md)
 - [发布与审核](docs/publishing.zh-CN.md)
 - [宿主职责](docs/governance.zh-CN.md)
