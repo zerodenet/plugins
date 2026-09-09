@@ -1,0 +1,64 @@
+name: Submit a plugin / 提交插件
+description: Request a listing or release update in the marketplace. / 申请收录插件或更新发行版本。
+title: '[Plugin] '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Publish and sign the plugin in its own repository first. Attach marketplace-entry.json or submit a PR using templates/plugin-entry.json.
+        先在独立仓库签名发布插件，再附上 marketplace-entry.json 或参照 templates/plugin-entry.json 提交 PR。不要提交源码、安装包或私钥。
+  - type: dropdown
+    id: host
+    attributes:
+      label: Host / 宿主
+      options: [zboard, znet-sink]
+    validations:
+      required: true
+  - type: input
+    id: plugin
+    attributes:
+      label: Plugin ID and version / 插件 ID 与版本
+      placeholder: zboard.example v0.0.1
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Source repository / 源码仓库
+      placeholder: https://github.com/owner/plugin
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: Release URL and source commit / 发行地址与源码提交
+    validations:
+      required: true
+  - type: textarea
+    id: metadata
+    attributes:
+      label: Release metadata / 发行元数据
+      description: Attach marketplace-entry.json or include platform, immutable URL, SHA-256 and byte size for every artifact. / 附上元数据文件，或填写各平台产物的固定地址、SHA-256 与字节数。
+    validations:
+      required: true
+  - type: textarea
+    id: publisher
+    attributes:
+      label: Publisher identity and public key / 发布者身份与公钥
+      description: Include key ID, base64 Ed25519 public key and an independently verifiable ownership channel. Never include private keys. / 提供公钥 ID、Base64 Ed25519 公钥及可独立核实归属的渠道，严禁填写私钥。
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility, permissions and data / 兼容性、权限与数据
+      description: Host/API versions, capabilities, UI surfaces, migrations, retention, upgrade and uninstall behavior. / 宿主与 API 版本、能力、界面范围、迁移、数据保留及升级卸载行为。
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation and maintenance / 验证与维护
+      description: Link CI and list actual host/platform tests, license, maintainers and security contact. / 提供 CI 链接、实际宿主与平台测试、许可证、维护者及安全联系渠道。
+    validations:
+      required: true

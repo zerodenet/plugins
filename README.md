@@ -1,51 +1,47 @@
-# ZeroDeNet Plugins
+# ZeroDeNet Plugin Marketplace
 
 **English** · [简体中文](README.zh-CN.md)
 
-The plugin platform for the ZeroDeNet ecosystem. This repository brings together the project documentation, host-specific plugin collections, and the design of a shared marketplace for [ZBoard](https://github.com/zerodenet/zboard) and [ZNet Sink](https://github.com/zerodenet/znet-sink).
+A public registry of independently maintained plugins for [ZBoard](https://github.com/zerodenet/zboard) and [ZNet Sink](https://github.com/zerodenet/znet-sink). Publishers build and release plugins in their own repositories. This repository records where releases come from, which hosts they support, and how their artifacts can be verified.
 
-## Repository branches
+## Browse plugins
 
-| Branch | Purpose |
-| --- | --- |
-| **main** | Platform overview, shared architecture, contribution policies, and marketplace proposals |
-| [**zboard**](https://github.com/zerodenet/plugins/tree/zboard) | ZBoard plugins, configuration guides, builds, and tests |
-| [**znet-sink**](https://github.com/zerodenet/plugins/tree/znet-sink) | Client plugin development and integration documentation |
+| Host | Registry | Available projects |
+| --- | --- | --- |
+| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — repository setup in progress; no signed release |
+| ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | No submissions yet |
 
-This branch is the documentation entry point. Each host collection is maintained and released from its own branch. Contributions target the branch responsible for the change.
+OAuth connects GitHub, Google and custom OAuth2 / OpenID Connect providers to ZBoard. Its independent repository is the destination for source, tests, configuration guides and release workflows. A listing is added after its source references are publicly accessible. ZBoard retains control of account creation, registration policy and sessions.
 
-## Plugin collections
+The JSON files above are reviewed source records. They are not signed installation feeds and must not be configured as ZBoard's `plugins.catalog_url`. A plugin with an empty `releases` array is a source listing, not an installable release. See [installation and trust](docs/usage.md).
 
-### ZBoard
+## Submit a plugin
 
-The [OAuth plugin](https://github.com/zerodenet/plugins/tree/zboard/zboard/oauth) connects GitHub, Google, and custom OAuth2 / OpenID Connect providers to ZBoard's sign-in and registration flows. Source builds and integration tests are available on the `zboard` branch.
+1. Maintain the plugin in a public source repository with a license, setup guide and security contact.
+2. Publish an independently versioned, signed release with immutable packages, SHA-256 digests and platform information.
+3. Use the [submission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or open a PR against `main` using [the entry template](templates/plugin-entry.json).
 
-### ZNet Sink
+A release updates one plugin entry in its host catalog. Marketplace CI validates metadata without compiling plugins or running contributor packages. See [contributing](CONTRIBUTING.md) for the review requirements.
 
-The [client branch](https://github.com/zerodenet/plugins/tree/znet-sink) establishes the scope for client plugins. Its host API and plugin runtime are under design; no client plugin implementation is available yet.
+## Repository layout
 
-Signed releases and a public marketplace catalog are planned. The [marketplace proposal](docs/marketplace-design.md) describes shared discovery and distribution across hosts.
+```text
+catalogs/       One source catalog per host
+scripts/        Registry validation
+templates/     Submission examples
+.github/        Contribution forms and validation workflow
+docs/           Registry format, publishing and host boundaries
+```
 
-## Architecture
-
-Plugins extend their host through dedicated APIs. Each application owns permission checks, configuration, private data, installation, and upgrades. Core business rules remain in the application that owns them.
-
-The marketplace organizes releases by plugin, host, and platform. Installation decisions and runtime behavior are governed by each host's contracts. Read [Plugin architecture](docs/governance.md) for those responsibilities.
+All maintained registry data and policies live on `main`. Plugin source and binaries belong to their independent repositories. The market does not maintain product-specific source branches.
 
 ## Documentation
 
-- [Documentation index](docs/README.md)
-- [Choosing and operating plugins](docs/usage.md)
-- [Development model](docs/development.md)
-- [Publishing model](docs/publishing.md)
-- [Contribution guide](CONTRIBUTING.md) and [project governance](GOVERNANCE.md)
+- [Registry format](docs/registry-format.md)
+- [Publishing and review](docs/publishing.md)
+- [Host responsibilities](docs/governance.md)
+- [Development](docs/development.md)
+- [Distribution proposal](docs/marketplace-design.md)
+- [Governance](GOVERNANCE.md) · [Security](SECURITY.md)
 
-Host-specific setup, commands, and troubleshooting are maintained on the host branches.
-
-## Community
-
-Use [GitHub Issues](https://github.com/zerodenet/plugins/issues) for bug reports and design proposals. Include the host and plugin when reporting a problem. Follow [SECURITY.md](SECURITY.md) for vulnerability reports.
-
-## License
-
-[Mozilla Public License 2.0](LICENSE). Third-party dependencies retain their respective licenses.
+English is the reference language; Simplified Chinese guides are maintained alongside it. Registry materials are licensed under [MPL-2.0](LICENSE). Each listed plugin retains its own license.

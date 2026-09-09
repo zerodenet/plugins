@@ -2,28 +2,10 @@
 
 **English** · [简体中文](AGENTS.zh-CN.md)
 
-## Branch ownership
+Read `README.md`, `CONTRIBUTING.md` and `docs/governance.md` before editing. This is a metadata registry with one maintained branch, `main`. Source catalogs are `catalogs/zboard.json` and `catalogs/znet-sink.json`; plugin source, build pipelines and packages belong to independent repositories.
 
-Read `README.md`, `CONTRIBUTING.md`, and `docs/governance.md` before changes. `main` contains the platform overview and shared documentation only. Plugin source, packaging scripts, and runtime CI belong to the corresponding `zboard` or `znet-sink` branch. Check the current branch before editing.
+Preserve plugin IDs and existing releases. Do not copy plugin runtimes or SDKs here, execute submitted packages, trust a submitted key automatically, or insert invented release metadata. Source-only listings must have empty releases. Hosts own authorization, core state and lifecycle transactions.
 
-Keep source under `<host>/<plugin>/` on the host branch. Preserve plugin IDs, publisher identity, public module paths, and historical commits. Host implementations and public SDKs remain in their respective repositories. Do not initialize nested Git repositories.
+Run `python3 -m unittest discover -s tests`, `python3 scripts/validate.py` and `git diff --check`. Add focused negative tests when changing validation. Maintain English and Chinese guides together and verify local Markdown links. Keep generated artifacts and secrets untracked.
 
-## Architecture
-
-Each host owns capability checks, core business state, private storage, and lifecycle transactions. Plugins consume dedicated, versioned host APIs. Do not introduce database access, arbitrary host commands, administrator tokens, or node credentials. A shared marketplace does not imply a shared runtime or global permissions.
-
-## Documentation
-
-English is the default. Maintain matching `.zh-CN.md` pages, reciprocal language links, and consistent commands and configuration examples. Links to another branch must name that branch explicitly. Keep workstation information and task reports outside public guides. Mark proposals as drafts.
-
-## Validation
-
-On `main`, check documentation links, language pairs, examples, and the absence of tracked implementation files. On `zboard`, run `sh scripts/check.sh`; packaging changes also require a signed development package check. On `znet-sink`, validate the documentation until an implementation provides its own checks; do not claim client runtime coverage before it exists.
-
-Use `--zboard` or `ZBOARD_DIR` for the host packager. Keep local workspaces, credentials, runtime data, and generated packages untracked. Development keys are for test hosts only.
-
-## Delivery
-
-Verify the Git author and committer against any checkout-specific user requirements. Use repository-local identity settings. Target PRs at the branch that owns the change and keep each long-lived history linear. Shared documents may be synchronized as isolated changes; do not merge host branches into `main` or apply a branch-layout removal to a host implementation.
-
-Source changes do not publish a plugin release. Record automated, host, target-platform, and live-provider verification separately.
+Use the checkout's required Git author and committer identity. Keep `main` linear and preserve migrated source history in its destination repository. Do not claim a registry source document is a signed host catalog or that cross-compilation proves platform execution.

@@ -1,30 +1,25 @@
-# Publishing model
+# Publishing and review
 
 **English** · [简体中文](publishing.zh-CN.md)
 
-Plugin releases are prepared from their host branch. `main` maintains the shared publishing contract and marketplace proposals; it contains no package build or release workflow.
+Plugin release and marketplace inclusion are separate operations. A publisher builds only the plugin being released. The market reviews metadata and does not rebuild third-party code.
 
-## Release identity
+## Publisher workflow
 
-A release records its plugin ID, publisher, semantic version, source branch and commit, compatible host/API versions, target platforms, and artifact digests. Tags include the host and plugin, such as `zboard/oauth/v0.2.0`, so collections can release independently.
+Develop and test in the independent repository. Choose a `vX.Y.Z` release, sign platform packages with a production publisher key and publish them with source commit, checksums, byte sizes and compatibility declarations. Retain the private key outside source control. Public releases must never use CI development keys.
 
-Published artifact content is immutable. Corrections receive a new version. Validation notes distinguish automated checks, host lifecycle tests, target-platform execution, and live external-provider testing.
+[OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) provides tag-triggered checks, five-platform packaging and a generated `marketplace-entry.json`. Its release environment settings are documented in that repository. Other publishers may use their own tooling if their artifacts conform to the host package contract.
 
-## Signing and distribution
+## Marketplace workflow
 
-Publishers sign packages in a protected environment and distribute public keys through a trusted channel. Catalog signing and package signing are separate roles, each verified by the host. Development credentials and runtime data remain outside published artifacts.
+Submit the release using the issue form or PR template. Update only the relevant entry in `catalogs/zboard.json` or `catalogs/znet-sink.json`, retaining previous releases. The entry template contains illustrative values that must all be replaced.
 
-Publish packages at immutable locations, generate catalog entries from the exact bytes, sign the catalog, and verify installation from a supported host. The catalog and package must agree on identity, host compatibility, publisher, and digest.
+CI validates repository metadata and never executes submitted packages. Maintainers independently verify publisher/key ownership, release-to-source correspondence, package signatures, digests and host test evidence. A green source-validation check alone is insufficient for an installable listing.
 
-## Host procedures
+## Signed installation feeds
 
-| Collection | Publishing procedure |
-| --- | --- |
-| ZBoard | [Signing, package validation, and catalog v1 requirements](https://github.com/zerodenet/plugins/blob/zboard/docs/publishing.md) |
-| ZNet Sink | [Client integration requirements](https://github.com/zerodenet/plugins/blob/znet-sink/docs/client-integration.md); release tooling follows the host contract |
+The source catalogs are not directly installable. A distribution publisher must select host- and platform-compatible reviewed artifacts, create the host's signed catalog, serve it over an accepted HTTPS download path and renew it before expiry. Catalog signing uses a market key distinct from plugin publisher keys.
 
-The [marketplace proposal](marketplace-design.md) covers shared distribution. No public catalog or official signed release is currently published.
+ZBoard currently accepts its signed catalog v1 and direct HTTPS package downloads without redirects. GitHub Release asset URLs redirect; an existing host therefore needs offline import or a compatible direct-download mirror until redirect handling is implemented. No production signed feed or catalog-renewal workflow is published by this repository yet. Do not point `plugins.catalog_url` at the source JSON files.
 
-## Maintenance
-
-Maintain download availability, renew time-limited catalogs, and record withdrawals with affected digests and recovery guidance. Withdrawing a listing does not delete installed plugin data. Existing installations are handled through the host's supported lifecycle operations.
+[The distribution proposal](marketplace-design.md) covers shared feeds and compatibility exports. Its unimplemented portions are not requirements imposed on existing hosts.

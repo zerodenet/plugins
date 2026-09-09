@@ -12,7 +12,7 @@ Maintainers will assess affected versions and coordinate a fix and disclosure. T
 
 ## Scope
 
-Reports may concern plugin source, configuration handling, dependencies, package creation, or the distribution design maintained here. Vulnerabilities in a host's core services should also be reported through that host's security process.
+Reports here may concern registry tampering, publisher impersonation, substituted packages, key compromise or distribution tooling. Plugin implementation vulnerabilities should also be reported privately to their publisher. Vulnerabilities in a host's core services should also be reported through that host's security process.
 
 ## Operating plugins
 

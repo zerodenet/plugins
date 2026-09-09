@@ -1,21 +1,17 @@
-# Development model
+# Registry development
 
 **English** · [简体中文](development.zh-CN.md)
 
-## Choose a branch
+Use Python 3.10 or later. Validation uses the standard library and does not install or build listed plugins.
 
-Platform documentation and shared proposals belong on `main`. ZBoard implementation work starts from `zboard`; client implementation work starts from `znet-sink`. A pull request uses the same host branch as its merge target.
+```sh
+git clone git@github.com:zerodenet/plugins.git
+cd plugins
+git switch -c feat/plugin-submission
+python3 -m unittest discover -s tests
+python3 scripts/validate.py
+```
 
-The [ZBoard development guide](https://github.com/zerodenet/plugins/blob/zboard/docs/development.md) provides the OAuth toolchain, build, and test commands. The [client integration scope](https://github.com/zerodenet/plugins/blob/znet-sink/docs/client-integration.md) records the contracts needed before client plugin development begins.
+Edit the host catalog using [the format reference](registry-format.md). Keep fixtures in `templates/`, negative validation cases in `tests/` and executable checks in `scripts/`. Production entries must reference real source commits and releases. The Actions workflow runs the same checks on main pushes and pull requests with read-only repository permissions. It additionally calls `python3 scripts/validate.py --base <full-commit-sha>` to protect existing releases and publisher identity.
 
-## Source ownership
-
-Host branches use `<host>/<plugin>/` for plugin source and keep their own dependency files, manifests, packaging scripts, and checks. Stable plugin IDs and public module paths survive repository layout changes. The host applications and their SDKs remain in their own repositories.
-
-Shared architecture and project policies are maintained here. Synchronize changes as isolated documentation commits or file updates. Review the diff when applying shared changes; merging an entire host branch would also transfer its implementation.
-
-## Validation
-
-Changes to `main` are reviewed for accurate product status, working links, and consistent English and Chinese documentation. Host branches define the checks appropriate to their implementation. Test new capabilities at the host boundary before consuming them in a plugin.
-
-See [Contributing](../CONTRIBUTING.md) for branch selection and review, and [Architecture](governance.md) for capability and lifecycle requirements.
+For OAuth implementation, clone [higanbana986/zboard-oauth](https://github.com/higanbana986/zboard-oauth) and follow its development guide. Host API work belongs in the host repository. This registry contains no plugin build workspace or shared runtime.

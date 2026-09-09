@@ -6,13 +6,13 @@ ZeroDeNet Plugins is maintained by the ZeroDeNet organization. Development takes
 
 ## Responsibilities
 
-Contributors propose changes and provide implementation, documentation, and validation. Repository maintainers review contributions, manage releases, and decide which plugins and distribution formats the repository supports. Host maintainers own their applications' APIs and lifecycle behavior.
+Contributors propose changes and provide implementation, documentation, and validation. Repository maintainers review contributions, manage registry changes, and decide which submissions and distribution formats the market supports. Host maintainers own their applications' APIs and lifecycle behavior.
 
 A plugin requiring a new host capability needs a corresponding proposal in the host repository. Shared marketplace proposals should describe the effect on each host and compatibility with existing consumers.
 
-## Branch ownership
+## Repository ownership
 
-`main` maintains the platform overview and shared documentation. `zboard` and `znet-sink` maintain their respective plugins and host-specific guides. Code review, CI, and releases target the relevant host branch. Shared policy changes are discussed on `main` and synchronized as isolated documentation changes where needed.
+`main` maintains both host source catalogs, validation tooling and public policies. Plugin maintainers own their independent repositories and releases. Marketplace maintainers review submissions and publisher trust evidence; host maintainers own admission and runtime behavior. Repository location alone does not establish official publisher status.
 
 ## Decisions
 

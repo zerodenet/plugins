@@ -1,0 +1,44 @@
+{
+  "id": "zboard.example",
+  "name": "Example plugin",
+  "description": "Replace this example with the plugin purpose.",
+  "repository": "https://github.com/example/zboard-example",
+  "license": "MPL-2.0",
+  "maintainers": [
+    "example"
+  ],
+  "publisher": {
+    "id": "example",
+    "public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  },
+  "source": {
+    "version": "v0.0.1",
+    "commit": "0000000000000000000000000000000000000000",
+    "manifest": "manifest.json"
+  },
+  "releases": [
+    {
+      "version": "v0.0.1",
+      "source_commit": "0000000000000000000000000000000000000000",
+      "requires": {
+        "zboard": ">=0.0.1 <0.1.0",
+        "plugin_protocol": 1,
+        "ui_bridge": 1
+      },
+      "surfaces": [
+        "admin"
+      ],
+      "capabilities": [
+        "zboard.ui.page.v1"
+      ],
+      "artifacts": [
+        {
+          "platform": "linux-amd64",
+          "url": "https://example.com/releases/v0.0.1/example.zbplugin",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "size": 1
+        }
+      ]
+    }
+  ]
+}

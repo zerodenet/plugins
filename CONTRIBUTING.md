@@ -2,57 +2,34 @@
 
 **English** · [简体中文](CONTRIBUTING.zh-CN.md)
 
-Contributions can include bug fixes, new integrations, tests, documentation, and translations.
+Contributions include new plugin listings, release updates, metadata corrections, distribution tooling and documentation. Plugin implementation changes belong in the plugin's source repository.
 
-## Before you start
+## Prepare a submission
 
-For a small fix, open a pull request describing the problem and the change. For a new plugin, host API, or marketplace format, open an issue first so maintainers can discuss scope and compatibility before implementation.
+Use [the issue form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) to request review, or copy [templates/plugin-entry.json](templates/plugin-entry.json) into the `plugins` array of the appropriate host catalog. Replace every example value; the template's zero key, hashes and commit are placeholders, not usable credentials or release evidence.
 
-Bug reports should include plugin and host versions, operating system, reproduction steps, and expected and observed behavior. Provide a minimal configuration with credentials and personal data removed. Use [SECURITY.md](SECURITY.md) for vulnerabilities.
+A submission must identify the repository, license, maintainers and publisher. For each release, provide the `vX.Y.Z` version, full source commit, host/API requirements, capabilities, UI surfaces and each platform artifact's immutable URL, SHA-256 and byte size. Include independently verifiable publisher/key ownership evidence and actual host/platform test results in the PR.
 
-## Development workflow
+Public source alone may be listed with `releases: []` and `publisher.public_key: null`; such a listing cannot be installed. Do not invent package URLs, digests, tests or a signing key to fill missing information.
 
-Fork the repository, or use a branch if you have write access. Select the base branch and PR target by scope:
+## Work on the registry
 
-| Scope | Base and merge target |
-| --- | --- |
-| Platform overview, shared policies, and marketplace proposals | `main` |
-| ZBoard plugins, host guides, and build checks | `zboard` |
-| ZNet Sink plugins and client integrations | `znet-sink` |
-
-For example, when editing ZBoard plugin documentation:
+Branch from `main` and keep the PR focused on one plugin or tooling change. Append releases to the existing plugin entry and retain prior releases. Do not duplicate plugin IDs or reassign an existing ID to another publisher. A key rotation needs a separate, reviewed transition plan.
 
 ```sh
-git switch zboard
-git pull --ff-only
-git switch -c docs/installation-guide
+python3 -m unittest discover -s tests
+python3 scripts/validate.py
+git diff --check
 ```
 
-Keep each pull request focused on one change. Follow the existing style, update affected documentation, and add tests for changed behavior. See [Development](docs/development.md) for local setup.
+CI checks structure, identities, version syntax, host separation and artifact metadata. It compares changes with the PR base or previous main commit to reject removed releases, rewritten artifact records and silent publisher/key changes. It does not establish publisher identity, fetch binaries, verify remote signatures or test host execution. Maintainers perform those reviews before accepting installable releases.
 
-Run the checks provided by the relevant branch before submitting. The `zboard` branch uses `sh scripts/check.sh`; documentation changes require link, language-pair, and example checks. Run `git diff --check` on every branch.
+## Review requirements
 
-Use your own Git author identity. Commit source files and dependency lockfiles; keep credentials, local workspaces, runtime data, and generated packages outside version control.
+Maintainers check publisher and key ownership, source/tag correspondence, license, package signature and digest, compatibility declarations and the requested capabilities. New permissions, migrations and uninstall behavior need explicit review. Record cross-compilation separately from execution tests and live provider tests.
 
-## Adding a plugin
+A submission does not grant host permissions or imply that a third-party publisher is endorsed by ZeroDeNet. Report vulnerabilities through [SECURITY.md](SECURITY.md).
 
-Keep official plugin source on its host branch, using the `<host>/<plugin>/` layout. OAuth currently lives at `zboard/oauth/` on `zboard`. Include:
+## Documentation and merge
 
-- A README with the use case, supported host versions, setup instructions, and limitations.
-- A manifest with a stable plugin ID, required capabilities, and entry points.
-- Locked dependencies, a build procedure, and tests integrated into the root check script and CI.
-- Configuration and data compatibility notes, including required host-managed migrations.
-
-Discuss missing capabilities in the host repository before building the integration. [Architecture](docs/governance.md) defines the boundary between plugins and core services. External plugins may retain their own repositories; marketplace submission will follow the distribution contract once adopted.
-
-## Documentation and translations
-
-English is the default documentation language. Simplified Chinese translations use the same filename with a `.zh-CN.md` suffix. Each page links to its counterpart; translated pages link to other translated pages where available.
-
-Update both versions in the same pull request. Keep commands, configuration keys, identifiers, version constraints, and technical meaning aligned. Write for the intended reader: project introductions belong in READMEs, procedures in guides, and field definitions in references. Workstation details and development-session notes belong outside public documentation.
-
-## Review and merge
-
-Describe the user-visible result, compatibility impact, and validation performed. Distinguish automated tests from host integration and live provider testing. Maintainers may request a smaller change or more coverage where public contracts are affected.
-
-After review and passing checks, maintainers merge into the appropriate target using squash or rebase to keep each long-lived branch linear. Host branches are not merged wholesale into `main`. Synchronize shared documentation by file or isolated commit so that code or implementation deletions do not cross branch boundaries. Releases follow the separate [publishing process](docs/publishing.md). See [Project governance](GOVERNANCE.md) for decisions and community expectations.
+Use English as the default and update matching `.zh-CN.md` guides in the same PR. Keep workstation details, credentials, compiled packages and development keys out of Git. Describe the effect and validation in the PR. Merge reviewed changes by squash or rebase to retain a linear `main` history.

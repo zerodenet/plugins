@@ -1,21 +1,17 @@
-# 开发模式
+# 注册表开发
 
 [English](development.md) · **简体中文**
 
-## 选择分支
+使用 Python 3.10 或更高版本。校验仅依赖标准库，不安装或构建收录插件。
 
-平台文档和共享提案属于 `main`。ZBoard 实现从 `zboard` 开始，客户端实现从 `znet-sink` 开始，Pull Request 也以同一宿主分支为合入目标。
+```sh
+git clone git@github.com:zerodenet/plugins.git
+cd plugins
+git switch -c feat/plugin-submission
+python3 -m unittest discover -s tests
+python3 scripts/validate.py
+```
 
-[ZBoard 开发指南](https://github.com/zerodenet/plugins/blob/zboard/docs/development.zh-CN.md)提供 OAuth 工具链、构建和测试命令。[客户端接入范围](https://github.com/zerodenet/plugins/blob/znet-sink/docs/client-integration.zh-CN.md)记录开展客户端插件开发前所需的契约。
+参照[格式说明](registry-format.zh-CN.md)编辑宿主目录。示例放在 `templates/`，拒绝用例放在 `tests/`，可执行检查放在 `scripts/`。正式条目必须指向真实源码提交及发行版本。Actions 在 main 推送和 PR 时以只读仓库权限运行相同检查，并额外调用 `python3 scripts/validate.py --base <完整提交号>` 保护既有发行记录及发布者身份。
 
-## 源码归属
-
-宿主分支按 `<host>/<plugin>/` 存放插件源码，分别维护依赖、manifest、打包脚本和检查。仓库结构变化时保留稳定插件 ID 和公开模块路径。宿主应用与 SDK 留在各自仓库。
-
-共享架构和项目政策在当前分支维护，以独立文档提交或文件更新同步。同步时检查差异；整体合入宿主分支会同时带入其实现。
-
-## 验证
-
-`main` 的修改检查产品状态是否准确、链接是否有效，以及中英文文档是否一致。宿主分支按实际实现定义检查；新增能力先在宿主边界验证，再由插件使用。
-
-分支选择与评审见[贡献指南](../CONTRIBUTING.zh-CN.md)，能力和生命周期要求见[架构说明](governance.zh-CN.md)。
+开发 OAuth 请克隆 [higanbana986/zboard-oauth](https://github.com/higanbana986/zboard-oauth)并遵循其开发指南。宿主 API 改动属于宿主仓库；本注册表不包含插件构建工作区或共享运行时。

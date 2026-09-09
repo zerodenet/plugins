@@ -1,24 +1,21 @@
-## Target branch / 目标分支
+## Listing / 收录信息
 
-Use `main` for shared documentation, `zboard` for ZBoard plugins, and `znet-sink` for client plugins.
-共享文档指向 `main`，ZBoard 插件指向 `zboard`，客户端插件指向 `znet-sink`。
+Host, plugin ID, version, upstream release and source commit:
+宿主、插件 ID、版本、上游发行地址与源码提交：
 
-- [ ] The PR base matches the scope / PR 基础分支与改动范围一致
+## Changes / 改动
 
-## What changes? / 修改内容
+Describe a new listing, release update, withdrawal or publisher change.
+说明新增收录、版本更新、撤回或发布者变更。
 
-Describe the problem and the resulting behavior. Include the plugin ID and host where applicable.
-说明问题与修改后的行为；涉及插件时，注明插件 ID 和宿主。
+## Evidence / 证据
 
-## Compatibility / 兼容性
+Link publisher/key ownership evidence, package signature verification and host/platform checks.
+提供发布者及公钥归属证据、安装包验签和宿主/平台测试结果。
 
-Describe changes to host requirements, capabilities, configuration, or stored data.
-说明宿主要求、能力、配置或持久化数据的变化。
-
-## Validation / 验证
-
-List the checks performed and any outstanding validation.
-列出已执行的检查与待完成的验证。
-
-- [ ] Relevant checks pass / 相关检查通过
-- [ ] English and Chinese documentation are updated together / 中英文文档同步更新
+- [ ] Source and packages remain in the independent repository / 源码与安装包保留在独立仓库
+- [ ] Used `templates/plugin-entry.json` and retained existing releases / 使用条目模板并保留既有发行记录
+- [ ] URLs, SHA-256, byte sizes and compatibility match the signed packages / 地址、摘要、字节数及兼容性与签名包一致
+- [ ] No private keys or credentials / 未包含私钥或凭据
+- [ ] `python3 -m unittest discover -s tests` and `python3 scripts/validate.py`
+- [ ] Documentation updated in both languages where needed / 必要文档已同步中英文
