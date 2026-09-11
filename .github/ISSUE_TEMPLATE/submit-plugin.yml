@@ -1,13 +1,14 @@
-name: Submit a plugin / 提交插件
-description: Request a listing or release update in the marketplace. / 申请收录插件或更新发行版本。
+name: Apply to the marketplace / 申请插件入驻
+description: Request first-time marketplace admission. / 申请插件首次进入市场。
 title: '[Plugin] '
 labels: ['plugin:submission']
 body:
   - type: markdown
     attributes:
       value: |
-        Publish and sign the plugin in its own repository first. Provide the GitHub Release URL for marketplace-entry.json. Automation validates it and opens a review PR.
-        先在独立仓库签名发布插件，再提供 marketplace-entry.json 的 GitHub Release 链接，自动化会校验并生成审核 PR。不要提交源码、安装包或私钥。
+        Apply once with a stable signed release. After admission, publish Stable, RC and Dev versions only in the plugin repository; do not open a marketplace issue for each version.
+        Keep basic information in the repository root marketplace.json; hosts read it directly instead of copying it into this directory.
+        使用一个正式签名版本申请一次入驻。通过后，正式版、RC 与 Dev 版本只在插件仓库发布，不要为每个版本重复提交市场 Issue。基础资料保存在仓库根目录 marketplace.json，由宿主直接读取。不要提交源码、安装包或私钥。
   - type: dropdown
     id: host
     attributes:
@@ -18,8 +19,8 @@ body:
   - type: input
     id: plugin
     attributes:
-      label: Plugin ID and version / 插件 ID 与版本
-      placeholder: zboard.example v0.0.1
+      label: Plugin ID / 插件 ID
+      placeholder: zboard.example
     validations:
       required: true
   - type: input
@@ -32,14 +33,14 @@ body:
   - type: input
     id: release
     attributes:
-      label: Release URL and source commit / 发行地址与源码提交
+      label: Onboarding release and source commit / 入驻发行与源码提交
     validations:
       required: true
   - type: input
     id: metadata
     attributes:
-      label: Release metadata URL / 发行元数据链接
-      description: An immutable GitHub Release asset URL, not a branch file. / 提供 GitHub Release 的固定产物链接，不要使用分支文件地址。
+      label: Onboarding metadata URL / 入驻发行元数据链接
+      description: One immutable stable GitHub Release asset used for admission review. Future versions remain in your repository. / 提供一个用于准入审核的正式版固定产物；后续版本由你的仓库维护。
       placeholder: https://github.com/owner/plugin/releases/download/v0.0.1/marketplace-entry.json
     validations:
       required: true
@@ -53,8 +54,8 @@ body:
   - type: textarea
     id: compatibility
     attributes:
-      label: Compatibility, permissions and data / 兼容性、权限与数据
-      description: Host/API versions, capabilities, UI surfaces, migrations, retention, upgrade and uninstall behavior. / 宿主与 API 版本、能力、界面范围、迁移、数据保留及升级卸载行为。
+      label: Capability ceiling and data / 能力上限与数据
+      description: Declare the maximum host capabilities and UI surfaces this listing may use, plus migrations, retention and uninstall behavior. Expanding this boundary requires a marketplace update. / 声明条目允许使用的最大宿主能力和界面范围，以及迁移、数据保留与卸载行为；扩大边界时需要更新市场登记。
     validations:
       required: true
   - type: textarea

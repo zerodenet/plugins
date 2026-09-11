@@ -2,47 +2,31 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
-A public registry of independently maintained plugins for [ZBoard](https://github.com/zerodenet/zboard) and [ZNet Sink](https://github.com/zerodenet/znet-sink). Publishers build and release plugins in their own repositories. This repository records where releases come from, which hosts they support, and how their artifacts can be verified.
+The curated plugin directory for [ZBoard](https://github.com/zerodenet/zboard), [ZNet Sink](https://github.com/zerodenet/znet-sink), and future ZeroDeNet hosts. Marketplace admission means the host team reviewed the plugin's purpose, maintainer and signing identity, distribution source, and maximum requested integration boundary.
+
+This repository is a directory, not a release ledger. Publishers own their Stable, RC, and Dev lifecycle in their own repositories. Compatible hosts discover those releases directly, verify packages with the admitted publisher key, and provide online installation, upgrade, downgrade, and channel selection.
 
 ## Browse plugins
 
-| Host | Registry | Available projects |
+| Host | Directory | Available projects |
 | --- | --- | --- |
-| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — [v0.0.1 released](https://github.com/higanbana986/zboard-oauth/releases/tag/v0.0.1); [listing under review](https://github.com/zerodenet/plugins/issues/1) |
-| ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | No submissions yet |
+| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) |
+| ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | No admissions yet |
 
-OAuth connects GitHub, Google and custom OAuth2 / OpenID Connect providers to ZBoard. Its source, tests, configuration guides and release workflows are maintained in its independent repository. ZBoard retains control of account creation, registration policy and sessions.
+Directory entries contain only stable admission and source pointers: plugin ID, repository, publisher key, repository-metadata source, release-source adapter, supported UI surfaces, and the reviewed capability ceiling. Hosts read names, descriptions, licenses, maintainers, and links from the plugin repository's `marketplace.json`; versions, artifacts, digests, compatibility declarations, and release notes come from the plugin's Releases.
 
-The JSON files above are reviewed source records. They are not signed installation feeds and must not be configured as ZBoard's `plugins.catalog_url`. A plugin with an empty `releases` array is a source listing, not an installable release. See [installation and trust](docs/usage.md).
+## Apply once
 
-## Submit a plugin
+1. Maintain the plugin in its own repository with a license, setup guide, security contact, and stable signing identity.
+2. Publish one stable signed onboarding release with immutable packages and marketplace-entry.json.
+3. Use the [admission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or propose [a directory entry](templates/plugin-entry.json).
 
-1. Maintain the plugin in a public source repository with a license, setup guide and security contact.
-2. Publish an independently versioned, signed release with immutable packages, SHA-256 digests and platform information.
-3. Use the [submission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or open a PR against `main` using [the entry template](templates/plugin-entry.json).
+After admission, publish new Stable, RC, and Dev versions and basic-information updates only in the plugin repository. Return here only when changing the repository, publisher identity or key, metadata/release-source contract, supported host, UI surface ceiling, or capability ceiling.
 
-A release updates one plugin entry in its host catalog. Marketplace CI validates metadata without compiling plugins or running contributor packages. See [contributing](CONTRIBUTING.md) for the review requirements.
+Offline import remains independent of marketplace admission. It supports development testing, private or non-open-source plugins, local customization, and other self-managed distribution.
 
 ## Repository layout
 
-```text
-catalogs/       One source catalog per host
-scripts/        Registry validation
-templates/     Submission examples
-.github/        Contribution forms and validation workflow
-docs/           Registry format, publishing and host boundaries
-```
+The catalogs directory contains one curated directory per host; scripts contains admission and validation tooling; templates contains listing examples; and docs defines contracts, publishing policy, and host boundaries.
 
-All maintained registry data and policies live on `main`. Plugin source and binaries belong to their independent repositories. The market does not maintain product-specific source branches.
-
-## Documentation
-
-- [Submission and update automation](docs/automation.md)
-- [Registry format](docs/registry-format.md)
-- [Publishing and review](docs/publishing.md)
-- [Host responsibilities](docs/governance.md)
-- [Development](docs/development.md)
-- [Distribution proposal](docs/marketplace-design.md)
-- [Governance](GOVERNANCE.md) · [Security](SECURITY.md)
-
-English is the reference language; Simplified Chinese guides are maintained alongside it. Registry materials are licensed under [MPL-2.0](LICENSE). Each listed plugin retains its own license.
+See [registry format](docs/registry-format.md), [publishing](docs/publishing.md), [automation](docs/automation.md), and [architecture](docs/governance.md). English is the reference language; Simplified Chinese guides are maintained alongside it.

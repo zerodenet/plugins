@@ -1,35 +1,31 @@
-# 注册表格式
+# 目录格式
 
 [English](registry-format.md) · **简体中文**
 
-源注册表采用 schema version `1`。它是仓库编辑格式，与 ZBoard 签名目录 v1 及拟议的共享分发 v2 分开。实际校验器见 [scripts/validate.py](../scripts/validate.py)。
+Schema 版本 2 描述插件市场准入，明确不保存插件版本、源码提交、安装包、摘要、兼容范围或发行历史。
 
 ## 宿主目录
 
-`catalogs/zboard.json` 与 `catalogs/znet-sink.json` 包含 `schema_version`、`host` 和 `plugins`。宿主值必须与文件名一致。同一插件 ID 在一个宿主目录内只出现一次。同一项目可以为不同宿主分别发布产物；一个宿主的能力不能授权另一个宿主。
+每个宿主文件包含 schema_version、host 和 plugins。同一宿主下插件 ID 唯一；同一项目可分别申请多个宿主，因为能力授权不会跨宿主继承。
 
 ## 插件条目
 
 | 字段 | 含义 |
 | --- | --- |
-| `id`、`name`、`description` | 稳定的包标识与发现信息 |
-| `repository` | 公开 GitHub 源码仓库 |
-| `license`、`maintainers` | 许可证标识与负责维护者 |
-| `publisher.id` | 稳定的安装包签名密钥标识 |
-| `publisher.public_key` | Base64 Ed25519 公钥，仅在尚无发行版本时允许为 `null` |
-| `source.version`、`source.commit`、`source.manifest` | 当前源码版本、完整 Git SHA 及清单相对路径 |
-| `releases` | 不可变发行记录，空数组表示仅有源码 |
+| id | 宿主范围内稳定且唯一的插件身份 |
+| repository | 开发者自己维护的公开源码及发行仓库 |
+| publisher.id、publisher.public_key | 经宿主团队准入的稳定包签名身份 |
+| metadata_source | 插件仓库中的基础资料入口；当前为根目录 `marketplace.json` |
+| release_source | 宿主发现开发者发行版本所用的适配器 |
+| surfaces | 准入允许的最大界面范围 |
+| capabilities | 准入允许的最大宿主能力 |
 
-源版本采用带 `v` 前缀的发行标识。ZBoard 安装包清单与运行时握手继续使用其协议要求的不带前缀的语义版本。例如市场发行 `v0.0.1` 对应包版本 `0.0.1`。
+宿主从登记仓库的 `marketplace.json` 读取名称、说明、许可证、维护者和资料链接。当前发行源适配器为 github-releases；宿主读取 repository 对应的公开 GitHub Releases，并在符合规范的正式版、RC 或 Dev 发行中查找配置的 metadata_asset，同时展示 Release 标题、正文、时间与原始链接。
 
-## 发行与产物
+## 信任边界
 
-每个发行记录包含 `version`、`source_commit`、`requires`、`surfaces`、`capabilities` 和 `artifacts`。`requires` 包含所属宿主键及宿主/API 兼容要求。ZBoard 发行还须声明正整数 `plugin_protocol` 与 `ui_bridge` 版本。可选的宿主推荐版本与已测试版本应从签名清单复制。
+登记的公钥、仓库、发行源适配器、界面范围和能力上限共同构成条目信任边界。宿主仍须校验所选包的签名、身份、版本、摘要、平台和兼容性。即使签名有效，只要安装包请求的界面或能力超出条目上限，也必须拒绝。
 
-每个产物包含 `platform`、`url`、`sha256` 与字节数 `size`。平台名称支持 `linux-amd64`、`linux-arm64`、`darwin-amd64`、`darwin-arm64`、`windows-amd64` 和 `any`。`any` 表示确实与平台无关的包，不能与专属平台产物混用。地址必须是固定 HTTPS 地址，不得携带凭据、查询参数或片段。ZBoard 安装包使用 `.zbplugin`；当前注册表限制单个压缩产物最大 32 MiB。
+常规发版和基础资料调整不修改本目录。仓库迁移、发布者或密钥轮换、资料或发行源契约变更、新增宿主、扩大界面或能力边界时，才提交专门的市场更新；安全撤回同样属于目录操作。
 
-## 更新条目
-
-新增版本时保留已有版本的包字节及摘要。新增权限或发布者公钥变更须明确审核。密钥轮换和签名撤回记录不属于源格式 v1；不得静默替换旧版本使用的公钥。紧急撤回通过安全报告协调目录排除与宿主处置。
-
-源目录 CI 检查结构与内部一致性。维护者仍需独立核实源码引用、安装包字节、签名及发布者归属。条目中的公钥是审核资料，不是宿主信任根。
+每个已发布版本的元数据由插件仓库维护并保持不可变，市场不复制其发行历史。

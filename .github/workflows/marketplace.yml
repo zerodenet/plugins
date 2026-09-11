@@ -7,8 +7,6 @@ on:
     branches: [main]
   push:
     branches: [main]
-  schedule:
-    - cron: '23 */6 * * *'
   workflow_dispatch:
 permissions: {}
 concurrency:
@@ -35,7 +33,7 @@ jobs:
           python-version: '3.12'
       - run: python3 -m unittest discover -s tests
       - run: python3 scripts/validate.py
-      - name: Maintain labels and propose catalog updates
+      - name: Maintain labels and process admission applications
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/marketplace_sync.py

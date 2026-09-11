@@ -1,28 +1,27 @@
-# Publishing and review
+# Publishing and marketplace admission
 
 **English** · [简体中文](publishing.zh-CN.md)
 
-Plugin release and marketplace inclusion are separate operations. A publisher builds only the plugin being released. The market reviews metadata and does not rebuild third-party code.
+## First admission
 
-## Publisher workflow
+Add repository-root `marketplace.json`, then publish one stable signed release from the independent plugin repository. Include immutable platform packages, checksums, compatibility declarations, source commit, and marketplace-entry.json. Apply to the marketplace with that metadata URL and evidence for publisher ownership, security maintenance, host behavior, and the requested capability ceiling.
 
-Develop and test in the independent repository. Choose a `vX.Y.Z` release, sign platform packages with a production publisher key and publish them with source commit, checksums, byte sizes and compatibility declarations. Retain the private key outside source control. Public releases must never use CI development keys.
+The admission review records stable discovery and trust metadata only. It does not import the onboarding version or any later release into a central release ledger.
 
-[OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) provides tag-triggered checks, five-platform packaging and a generated `marketplace-entry.json`. Its release environment settings are documented in that repository. Other publishers may use their own tooling if their artifacts conform to the host package contract.
+## Publisher-owned lifecycle
 
-## Marketplace workflow
+After admission, the publisher may release Stable, RC, and Dev versions without another marketplace issue. Each accepted release:
 
-Submit the release using the issue form or PR template. Update only the relevant entry in `catalogs/zboard.json` or `catalogs/znet-sink.json`, retaining previous releases. The entry template contains illustrative values that must all be replaced.
+- uses the admitted plugin ID, repository, publisher ID, and production signing key;
+- follows the host package and metadata contract;
+- stays within the admitted UI surface and capability ceilings;
+- publishes immutable packages and one marketplace-entry.json asset;
+- marks RC and Dev as prereleases and Stable as a normal release.
 
-CI validates repository metadata and never executes submitted packages. Maintainers independently verify publisher/key ownership, release-to-source correspondence, package signatures, digests and host test evidence. A green source-validation check alone is insufficient for an installable listing.
+Hosts discover these versions directly, show channel and exact-version choices, inspect compatibility, verify package signature and digest, and perform lifecycle operations. A release outside the admitted boundary is rejected and requires a marketplace update before it can be installed online.
 
+Development artifacts signed with disposable CI keys are for isolated offline testing, not marketplace installation. Offline import also remains available for private, local, or non-open-source plugins.
 
-An issue containing the release metadata URL is validated automatically and linked to a generated review PR. After first inclusion, scheduled checks propose new stable releases without a cross-repository publisher token. Labels track validation, review and inclusion; they do not authorize a merge. See [marketplace automation](automation.md) for setup and failure handling.
+## Directory updates
 
-## Signed installation feeds
-
-The source catalogs are not directly installable. A distribution publisher must select host- and platform-compatible reviewed artifacts, create the host's signed catalog, serve it over an accepted HTTPS download path and renew it before expiry. Catalog signing uses a market key distinct from plugin publisher keys.
-
-ZBoard currently accepts its signed catalog v1 and direct HTTPS package downloads without redirects. GitHub Release asset URLs redirect; an existing host therefore needs offline import or a compatible direct-download mirror until redirect handling is implemented. No production signed feed or catalog-renewal workflow is published by this repository yet. Do not point `plugins.catalog_url` at the source JSON files.
-
-[The distribution proposal](marketplace-design.md) covers shared feeds and compatibility exports. Its unimplemented portions are not requirements imposed on existing hosts.
+Return to the marketplace only for repository relocation, publisher/key rotation, metadata/release-source contract changes, support for another host, capability or surface expansion, or withdrawal. Basic information remains in repository-owned `marketplace.json`. These are admission changes, not releases.

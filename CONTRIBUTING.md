@@ -2,34 +2,26 @@
 
 **English** · [简体中文](CONTRIBUTING.zh-CN.md)
 
-Contributions include new plugin listings, release updates, metadata corrections, distribution tooling and documentation. Plugin implementation changes belong in the plugin's source repository.
+Contributions include new plugin admissions, listing corrections, trust-boundary changes, release-source adapters, and documentation. Plugin implementation and release changes belong in the plugin's own repository.
 
-## Prepare a submission
+## Admission
 
-Use [the issue form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) to request review, or copy [templates/plugin-entry.json](templates/plugin-entry.json) into the `plugins` array of the appropriate host catalog. Replace every example value; the template's zero key, hashes and commit are placeholders, not usable credentials or release evidence.
+Use the [application form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or copy [the entry template](templates/plugin-entry.json) into the appropriate host directory. Provide repository-owned `marketplace.json`, the repository, license, maintainers, publisher key, metadata/release-source adapters, UI surface ceiling, and capability ceiling. Provide independently verifiable publisher/key ownership, one stable onboarding release, security maintenance, and actual host/platform evidence.
 
-A submission must identify the repository, license, maintainers and publisher. For each release, provide the `vX.Y.Z` version, full source commit, host/API requirements, capabilities, UI surfaces and each platform artifact's immutable URL, SHA-256 and byte size. Include independently verifiable publisher/key ownership evidence and actual host/platform test results in the PR.
+Automation verifies the onboarding release and proposes a version-free directory entry. Maintainers review purpose, repository control, publisher identity, requested maximum capabilities, migration and uninstall behavior, package signature, and real host evidence.
 
-Public source alone may be listed with `releases: []` and `publisher.public_key: null`; such a listing cannot be installed. Do not invent package URLs, digests, tests or a signing key to fill missing information.
+## Later releases
 
-## Work on the registry
+Do not add versions, artifacts, digests, compatibility declarations, or release notes to this repository. After admission, publishers release Stable, RC, and Dev versions in their own repositories. Hosts discover and enforce them against the admitted boundary.
 
-Branch from `main` and keep the PR focused on one plugin or tooling change. Append releases to the existing plugin entry and retain prior releases. Do not duplicate plugin IDs or reassign an existing ID to another publisher. A key rotation needs a separate, reviewed transition plan.
+Use a focused marketplace PR for repository transfer, publisher/key rotation, metadata/release-source contract changes, another host, broader capabilities or UI surfaces, suspension, or withdrawal. Routine `marketplace.json` information changes stay in the plugin repository.
 
-```sh
-python3 -m unittest discover -s tests
-python3 scripts/validate.py
-git diff --check
-```
+## Validation
 
-CI checks structure, identities, version syntax, host separation and artifact metadata. It compares changes with the PR base or previous main commit to reject removed releases, rewritten artifact records and silent publisher/key changes. It does not establish publisher identity, fetch binaries, verify remote signatures or test host execution. Maintainers perform those reviews before accepting installable releases.
+Run:
 
-## Review requirements
+    python3 -m unittest discover -s tests
+    python3 scripts/validate.py
+    git diff --check
 
-Maintainers check publisher and key ownership, source/tag correspondence, license, package signature and digest, compatibility declarations and the requested capabilities. New permissions, migrations and uninstall behavior need explicit review. Record cross-compilation separately from execution tests and live provider tests.
-
-A submission does not grant host permissions or imply that a third-party publisher is endorsed by ZeroDeNet. Report vulnerabilities through [SECURITY.md](SECURITY.md).
-
-## Documentation and merge
-
-Use English as the default and update matching `.zh-CN.md` guides in the same PR. Keep workstation details, credentials, compiled packages and development keys out of Git. Describe the effect and validation in the PR. Merge reviewed changes by squash or rebase to retain a linear `main` history.
+CI checks structure, host separation, public keys, adapters, capability ceilings, and durable listing identity. It never executes publisher packages. Keep English and Simplified Chinese documentation aligned and keep credentials, private keys, packages, and workstation data out of Git.

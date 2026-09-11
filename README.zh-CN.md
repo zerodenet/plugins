@@ -2,47 +2,31 @@
 
 [English](README.md) · **简体中文**
 
-面向 [ZBoard](https://github.com/zerodenet/zboard) 和 [ZNet Sink](https://github.com/zerodenet/znet-sink) 的公开插件注册表。发布者在各自仓库构建和发行插件；本仓库记录发行来源、宿主兼容性以及产物验证信息。
+这是面向 [ZBoard](https://github.com/zerodenet/zboard)、[ZNet Sink](https://github.com/zerodenet/znet-sink) 及未来 ZeroDeNet 宿主的精选插件目录。插件通过市场准入，表示宿主团队已经审核其立意、维护与签名身份、发行来源以及允许使用的最大集成边界。
+
+本仓库是登记目录，不是版本台账。开发者在自己的仓库维护正式版、RC 和 Dev 生命周期；支持的宿主直接发现这些发行版本，使用已登记的发布者公钥验签，并提供在线安装、升级、降级和频道选择。
 
 ## 浏览插件
 
-| 宿主 | 注册表 | 已有项目 |
+| 宿主 | 目录 | 已有项目 |
 | --- | --- | --- |
-| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) — [v0.0.1 已发布](https://github.com/higanbana986/zboard-oauth/releases/tag/v0.0.1)，[收录审核中](https://github.com/zerodenet/plugins/issues/1) |
-| ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | 暂无提交 |
+| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) |
+| ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | 暂无入驻插件 |
 
-OAuth 将 GitHub、Google 和自定义 OAuth2 / OpenID Connect 提供方接入 ZBoard。源码、测试、配置指南和发行流程均在独立仓库维护。账户创建、注册策略及会话仍由 ZBoard 核心掌管。
+目录条目只保存稳定的准入与入口信息：插件 ID、仓库、发布者公钥、仓库资料入口、发行源适配器、支持的界面范围和审核过的能力上限。名称、说明、许可证、维护者等基础资料由宿主从插件仓库的 `marketplace.json` 读取；版本、产物、摘要、兼容声明及更新说明从插件自己的 Releases 读取。
 
-上述 JSON 文件是经评审的源记录，不是签名安装目录，不能直接填入 ZBoard 的 `plugins.catalog_url`。`releases` 数组为空的插件只提供源码入口，不代表已有可安装版本。参见[安装与信任](docs/usage.zh-CN.md)。
+## 只申请一次
 
-## 提交插件
+1. 在独立仓库维护插件，提供许可证、配置指南、安全联系渠道及稳定签名身份。
+2. 发布一个正式签名的入驻版本，包含固定安装包和 marketplace-entry.json。
+3. 使用[入驻表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)，或参照[目录条目模板](templates/plugin-entry.json)提交方案。
 
-1. 在公开源码仓库维护插件，提供许可证、配置指南与安全联系渠道。
-2. 独立发布签名版本，提供固定安装包、SHA-256 摘要与平台信息。
-3. 使用[提交表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)，或参照[条目模板](templates/plugin-entry.json)向 `main` 提交 PR。
+通过准入后，后续正式版、RC 和 Dev 版只在插件仓库发布，常规发版和基础资料调整不再提交市场 Issue。只有仓库地址、发布者身份或公钥、资料/发行源契约、支持宿主、界面上限或能力上限发生变化时，才需要回来更新登记。
 
-一次发行只更新所属宿主目录内的一个插件条目。市场 CI 校验元数据，不编译插件，也不执行贡献者的安装包。审核要求见[贡献指南](CONTRIBUTING.zh-CN.md)。
+离线导入不依赖市场准入，继续用于开发自测、私有或不便开源的插件、本地 DIY 以及其他自行管理的分发方式。
 
 ## 仓库布局
 
-```text
-catalogs/       每个宿主一个源目录
-scripts/        注册表校验
-templates/     提交示例
-.github/        贡献表单与校验工作流
-docs/           注册表格式、发行规范及宿主边界
-```
+catalogs 保存各宿主的精选目录，scripts 保存准入和校验工具，templates 保存条目示例，docs 定义契约、发行政策和宿主边界。
 
-所有持续维护的市场数据及政策均位于 `main`。插件源码与二进制产物归属各自独立仓库，市场不再维护按产品区分的源码分支。
-
-## 文档
-
-- [收录与更新自动化](docs/automation.zh-CN.md)
-- [注册表格式](docs/registry-format.zh-CN.md)
-- [发布与审核](docs/publishing.zh-CN.md)
-- [宿主职责](docs/governance.zh-CN.md)
-- [开发指南](docs/development.zh-CN.md)
-- [分发提案](docs/marketplace-design.zh-CN.md)
-- [治理](GOVERNANCE.zh-CN.md) · [安全](SECURITY.zh-CN.md)
-
-英文为参考版本，简体中文指南同步维护。注册表资料采用 [MPL-2.0](LICENSE)，各插件保留各自许可证。
+参见[目录格式](docs/registry-format.zh-CN.md)、[发布规范](docs/publishing.zh-CN.md)、[自动化](docs/automation.zh-CN.md)和[架构边界](docs/governance.zh-CN.md)。英文为参考版本，简体中文指南同步维护。

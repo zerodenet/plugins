@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate marketplace source catalogs; never execute or download plugin code."""
+"""Validate the curated plugin directory without reading publisher releases."""
 import argparse
 import base64
 import json
@@ -11,9 +11,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 HOSTS = {'zboard', 'znet-sink'}
-PLATFORMS = {'linux-amd64', 'linux-arm64', 'darwin-amd64', 'darwin-arm64', 'windows-amd64', 'any'}
-PRE = r'(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)'
-TAG = rf'v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-{PRE}(?:\.{PRE})*)?'
+SURFACES = {'zboard': {'admin', 'public', 'account'}, 'znet-sink': set()}
 
 
 def require(condition, message):
@@ -38,7 +36,8 @@ def https(value):
     require(text(value), 'expected HTTPS URL')
     parsed = urlsplit(value)
     require(parsed.scheme == 'https' and parsed.hostname and not parsed.username and not parsed.password
-            and not parsed.fragment and not parsed.query and parsed.port in (None, 443), 'URL must be credential-free HTTPS without query or fragment')
+            and not parsed.fragment and not parsed.query and parsed.port in (None, 443),
+            'URL must be credential-free HTTPS without query or fragment')
     return parsed
 
 
@@ -47,59 +46,42 @@ def strings(value):
 
 
 def validate_entry(entry, host):
-    fields(entry, ('id', 'name', 'description', 'repository', 'license', 'maintainers', 'publisher', 'source', 'releases'))
+    fields(entry, ('id', 'repository', 'publisher', 'metadata_source',
+                   'release_source', 'surfaces', 'capabilities'))
     require(matches(r'[a-z0-9][a-z0-9._-]{1,159}', entry['id']), 'invalid plugin ID')
-    for name in ('name', 'description', 'license'):
-        require(text(entry[name]), 'missing ' + name)
     repository = https(entry['repository'])
-    require(repository.hostname == 'github.com' and matches(r'/[\w.-]+/[\w.-]+', repository.path), 'repository must identify a GitHub source repository')
-    require(strings(entry['maintainers']) and entry['maintainers'], 'maintainers are required')
-    pub = entry['publisher']
-    fields(pub, ('id', 'public_key'))
-    require(matches(r'[a-z0-9][a-z0-9._-]{0,79}', pub['id']), 'invalid publisher ID')
-    if pub['public_key'] is not None:
-        require(isinstance(pub['public_key'], str) and len(base64.b64decode(pub['public_key'], validate=True)) == 32, 'invalid Ed25519 public key')
-    source = entry['source']
-    fields(source, ('version', 'commit', 'manifest'))
-    require(matches(TAG, source['version']), 'source version must be a v-prefixed version')
-    require(matches(r'[a-f0-9]{40}', source['commit']), 'source commit must be a full Git SHA')
-    path = source['manifest']
-    require(text(path) and not path.startswith('/') and '\\' not in path and all(p not in ('', '.', '..') for p in path.split('/')), 'manifest must be a safe relative path')
-    require(isinstance(entry['releases'], list), 'releases must be an array')
-    require(not entry['releases'] or pub['public_key'] is not None, 'installable releases need a publisher public key')
-    versions = set()
-    for release in entry['releases']:
-        fields(release, ('version', 'source_commit', 'requires', 'surfaces', 'capabilities', 'artifacts'))
-        version = release['version']
-        require(matches(TAG, version) and version not in versions, 'invalid or duplicate release version')
-        versions.add(version)
-        require(matches(r'[a-f0-9]{40}', release['source_commit']), 'release commit must be a full Git SHA')
-        require(isinstance(release['requires'], dict) and text(release['requires'].get(host)), 'release must declare its target host requirement')
-        require(not any(h in release['requires'] for h in HOSTS - {host}), 'cross-host requirement')
-        require(strings(release['surfaces']) and strings(release['capabilities']), 'surfaces and capabilities must be unique string arrays')
-        require(all(c.startswith(host + '.') for c in release['capabilities']), 'capability belongs to another host')
-        if host == 'zboard':
-            require(set(release['surfaces']) <= {'admin', 'public', 'account'}, 'invalid ZBoard UI surface')
-            for protocol in ('plugin_protocol', 'ui_bridge'):
-                require(type(release['requires'].get(protocol)) is int and release['requires'][protocol] > 0, 'missing protocol requirement')
-        require(isinstance(release['artifacts'], list) and release['artifacts'], 'release must contain artifacts')
-        platforms = set()
-        for artifact in release['artifacts']:
-            fields(artifact, ('platform', 'url', 'sha256', 'size'))
-            platform = artifact['platform']
-            require(platform in PLATFORMS and platform not in platforms, 'invalid or duplicate platform')
-            platforms.add(platform)
-            https(artifact['url'])
-            require(matches(r'[a-f0-9]{64}', artifact['sha256']), 'invalid SHA-256')
-            require(type(artifact['size']) is int and 0 < artifact['size'] <= 32 * 1024 * 1024, 'invalid package size')
-            if host == 'zboard':
-                require(artifact['url'].endswith('.zbplugin'), 'ZBoard requires .zbplugin packages')
-        require('any' not in platforms or len(platforms) == 1, 'platform-independent artifacts cannot be mixed with platform-specific ones')
+    require(repository.hostname == 'github.com' and matches(r'/[\w.-]+/[\w.-]+', repository.path),
+            'repository must identify a GitHub source repository')
+
+    publisher = entry['publisher']
+    fields(publisher, ('id', 'public_key'))
+    require(matches(r'[a-z0-9][a-z0-9._-]{0,79}', publisher['id']), 'invalid publisher ID')
+    try:
+        key = base64.b64decode(publisher['public_key'], validate=True)
+    except (TypeError, ValueError):
+        key = b''
+    require(len(key) == 32, 'publisher must provide an Ed25519 public key')
+
+    metadata = entry['metadata_source']
+    fields(metadata, ('type', 'path'))
+    require(metadata['type'] == 'repository-file', 'unsupported metadata source')
+    require(metadata['path'] == 'marketplace.json', 'repository metadata path must be marketplace.json')
+
+    source = entry['release_source']
+    fields(source, ('type', 'metadata_asset'))
+    require(source['type'] == 'github-releases', 'unsupported release source')
+    require(matches(r'[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.json', source['metadata_asset']),
+            'release metadata asset must be a simple JSON filename')
+
+    require(strings(entry['surfaces']) and set(entry['surfaces']) <= SURFACES[host], 'invalid UI surface ceiling')
+    require(strings(entry['capabilities']), 'capabilities must be a unique string array')
+    require(all(matches(r'[a-z0-9][a-z0-9._-]{1,159}', value) and value.startswith(host + '.')
+                for value in entry['capabilities']), 'capability belongs to another host or is invalid')
 
 
 def validate(catalog, expected_host):
     fields(catalog, ('schema_version', 'host', 'plugins'))
-    require(type(catalog['schema_version']) is int and catalog['schema_version'] == 1, 'unsupported source schema')
+    require(catalog['schema_version'] == 2, 'unsupported directory schema')
     require(catalog['host'] == expected_host and expected_host in HOSTS, 'catalog host mismatch')
     require(isinstance(catalog['plugins'], list), 'plugins must be an array')
     identities = set()
@@ -118,21 +100,15 @@ def no_duplicates(pairs):
 
 
 def validate_transition(previous, current):
-    entries = {entry['id']: entry for entry in current['plugins']}
-    for old in previous['plugins']:
-        require(old['id'] in entries, 'retain existing listings; withdrawals need a reviewed schema change')
-        new = entries[old['id']]
-        require(old['publisher']['id'] == new['publisher']['id'], 'publisher identity cannot be reassigned')
-        if old['publisher']['public_key'] is not None:
-            require(old['publisher']['public_key'] == new['publisher']['public_key'], 'key rotation requires an explicit transition contract')
-        releases = {release['version']: release for release in new['releases']}
-        for release in old['releases']:
-            require(releases.get(release['version']) == release, 'existing releases must be retained without rewriting artifact metadata')
+    """Listings are durable; release history deliberately is not stored here."""
+    current_ids = {entry['id'] for entry in current['plugins']}
+    for old in previous.get('plugins', []):
+        require(old['id'] in current_ids, 'retain existing listings; removal needs an explicit withdrawal record')
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--base', help='compare with a Git commit to protect existing release records')
+    parser.add_argument('--base', help='compare with a Git commit to protect existing listings')
     args = parser.parse_args()
     try:
         if args.base:
@@ -148,7 +124,6 @@ def main():
                 if files.strip():
                     raw = subprocess.check_output(['git', 'show', args.base + ':' + relative], cwd=ROOT, text=True)
                     previous = json.loads(raw, object_pairs_hook=no_duplicates)
-                    validate(previous, host)
                     validate_transition(previous, current)
             print(f'{path.relative_to(ROOT)}: valid')
     except (ValueError, KeyError, TypeError, OSError, subprocess.CalledProcessError) as error:

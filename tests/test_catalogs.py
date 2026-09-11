@@ -14,49 +14,29 @@ SPEC.loader.exec_module(validator)
 class CatalogTest(unittest.TestCase):
     def setUp(self):
         self.entry = json.loads((ROOT / 'templates/plugin-entry.json').read_text())
-        self.catalog = {'schema_version': 1, 'host': 'zboard', 'plugins': [self.entry]}
-
-    def test_transition_retains_publisher_and_previous_artifacts(self):
-        previous = copy.deepcopy(self.catalog)
-        validator.validate_transition(previous, self.catalog)
-        for mutate in (
-            lambda c: c.update(plugins=[]),
-            lambda c: c['plugins'][0]['publisher'].update(id='another-publisher'),
-            lambda c: c['plugins'][0]['publisher'].update(public_key=base64.b64encode(b'x' * 32).decode()),
-            lambda c: c['plugins'][0].update(releases=[]),
-            lambda c: c['plugins'][0]['releases'][0]['artifacts'][0].update(sha256='a' * 64),
-        ):
-            current = copy.deepcopy(self.catalog)
-            mutate(current)
-            with self.assertRaises(ValueError):
-                validator.validate_transition(previous, current)
-        previous['plugins'][0]['releases'] = []
-        previous['plugins'][0]['publisher']['public_key'] = None
-        validator.validate_transition(previous, self.catalog)
+        self.catalog = {'schema_version': 2, 'host': 'zboard', 'plugins': [self.entry]}
 
     def test_template_valid(self):
         validator.validate(self.catalog, 'zboard')
 
-    def test_source_only_is_not_installable(self):
-        self.entry['releases'] = []
-        self.entry['publisher']['public_key'] = None
-        validator.validate(self.catalog, 'zboard')
+    def test_catalog_contains_only_admission_and_discovery_metadata(self):
+        forbidden = {'source', 'releases', 'version', 'artifacts'}
+        self.assertFalse(forbidden & self.entry.keys())
+        self.assertFalse({'name', 'description', 'license', 'maintainers'} & self.entry.keys())
+        self.assertEqual(self.entry['metadata_source'], {'type': 'repository-file', 'path': 'marketplace.json'})
+        self.assertEqual(self.entry['release_source']['type'], 'github-releases')
 
-    def test_rejects_bad_release_identity_and_artifacts(self):
+    def test_rejects_invalid_trust_and_capability_boundaries(self):
         mutations = [
             lambda e: e['publisher'].update(public_key=None),
             lambda e: e['publisher'].update(public_key='bad-key'),
-            lambda e: e['source'].update(manifest='../manifest.json'),
-            lambda e: e['releases'][0].update(version='0.0.1'),
-            lambda e: e['releases'].append(copy.deepcopy(e['releases'][0])),
-            lambda e: e['releases'][0].update(capabilities=['znet-sink.shell.v1']),
-            lambda e: e['releases'][0]['requires'].update({'znet-sink': '>=0.0.1'}),
-            lambda e: e['releases'][0]['artifacts'][0].update(url='http://example.com/plugin.zbplugin'),
-            lambda e: e['releases'][0]['artifacts'][0].update(url='https://user:secret@example.com/plugin.zbplugin'),
-            lambda e: e['releases'][0]['artifacts'][0].update(sha256='invalid'),
-            lambda e: e['releases'][0]['artifacts'][0].update(size=True),
-            lambda e: e['releases'][0]['artifacts'][0].update(size=33554433),
-            lambda e: e['releases'][0]['artifacts'].append(copy.deepcopy(e['releases'][0]['artifacts'][0])),
+            lambda e: e['release_source'].update(type='branch-file'),
+            lambda e: e['release_source'].update(metadata_asset='../marketplace-entry.json'),
+            lambda e: e['metadata_source'].update(path='manifest.json'),
+            lambda e: e.update(repository='https://127.0.0.1/plugin'),
+            lambda e: e.update(surfaces=['admin', 'unknown']),
+            lambda e: e.update(capabilities=['znet-sink.shell.v1']),
+            lambda e: e.update(capabilities=['zboard.ui.page.v1', 'zboard.ui.page.v1']),
         ]
         for mutate in mutations:
             with self.subTest(mutate=mutate):
@@ -72,9 +52,25 @@ class CatalogTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validator.validate(self.catalog, 'znet-sink')
         with self.assertRaises(ValueError):
-            validator.validate({'schema_version': 1, 'host': 'znet-sink', 'plugins': [], 'script': 'run me'}, 'znet-sink')
+            validator.validate({'schema_version': 2, 'host': 'znet-sink', 'plugins': [], 'script': 'run me'}, 'znet-sink')
         with self.assertRaises(ValueError):
             json.loads('{"host":"zboard","host":"znet-sink"}', object_pairs_hook=validator.no_duplicates)
+
+    def test_transition_retains_listings_but_does_not_store_release_history(self):
+        previous = copy.deepcopy(self.catalog)
+        current = copy.deepcopy(self.catalog)
+        current['plugins'][0]['metadata_source']['path'] = 'marketplace.json'
+        current['plugins'][0]['publisher']['public_key'] = base64.b64encode(b'x' * 32).decode()
+        validator.validate_transition(previous, current)
+        current['plugins'] = []
+        with self.assertRaises(ValueError):
+            validator.validate_transition(previous, current)
+
+    def test_schema_one_catalog_migrates_without_copying_release_history(self):
+        previous = {'schema_version': 1, 'host': 'zboard', 'plugins': [{
+            'id': self.entry['id'], 'source': {'version': 'v0.0.1'}, 'releases': [{'version': 'v0.0.1'}],
+        }]}
+        validator.validate_transition(previous, self.catalog)
 
 
 if __name__ == '__main__':

@@ -2,12 +2,10 @@
 
 **English** · [简体中文](usage.zh-CN.md)
 
-Choose a plugin from the host's source catalog and read its repository documentation. Check supported host/API versions, target platform, required capabilities and publisher ownership before installing. A source listing with no releases cannot be installed.
+Choose an admitted plugin in the host marketplace. Its name, description, license, maintainers, and documentation links come from repository-owned `marketplace.json`; version lists, timestamps, and release notes come from that repository's Releases. The host lets an administrator select Stable, RC, Dev, or an exact version and verifies the selected package against the admitted publisher key and capability ceiling before installation.
 
-For ZBoard, obtain the publisher public key through a trusted channel and configure host trust. Download a matching signed `.zbplugin` from the publisher, compare SHA-256 with the release metadata, and use offline import in plugin management. ZBoard validates and controls installation, configuration, enabling, upgrading and removal. See the plugin's installation guide for the exact procedure.
+Online discovery is not enough by itself. The host also validates plugin identity, version, platform, package digest and signature, host/API compatibility, and requested capabilities. Stable is the default channel; RC and Dev are explicit administrator choices.
 
-The source catalogs in this repository are unsigned editing records. They cannot be used as `plugins.catalog_url`; online installation needs a separately published signed host catalog and a download endpoint supported by that host. Current distribution limitations are described in [Publishing](publishing.md).
+Offline import is independent of marketplace admission. It supports development testing, private distribution, local customization, and non-market plugins. The administrator explicitly accepts their source and signing identity, while the host applies the same package, compatibility, and lifecycle checks.
 
-Catalog and package signatures establish origin and integrity. They do not grant permissions or make arbitrary native code safe to execute. ZBoard native plugins are trusted subprocesses, not an OS sandbox. Review the publisher and capability request before granting trust.
-
-ZBoard owns account and registration policy, credentials and node publication. Disabling or uninstalling OAuth does not transfer ownership of user records to the plugin. Data retention and migration are controlled by the host lifecycle. ZNet Sink's host runtime and installation contract remain under development; an empty client catalog does not imply an available client plugin runtime.
+ZBoard owns accounts, registration policy, credentials, orders, node publication, and committed business records. Plugins own their integration logic and contributed UI. Installing or removing a plugin does not transfer ownership of core data.

@@ -1,63 +1,34 @@
-# Shared marketplace proposal
+# Shared marketplace architecture
 
 **English** · [简体中文](marketplace-design.zh-CN.md)
 
-**Status: Draft.** This proposal describes a shared distribution layer for ZBoard, ZNet Sink, and future hosts. ZBoard currently implements its own v1 catalog and `.zbplugin` format. The proposed v2 format has not been implemented.
+## Purpose
 
-## Motivation
+The marketplace is a curated directory and a convenient host entrypoint. It lets ZBoard, ZNet Sink, and future hosts browse admitted plugins and lets users understand, obtain, install, and manage them without copying developer-owned release history into a central repository.
 
-Users should be able to discover ZeroDeNet plugins in one place. Publishers need a consistent way to describe releases, target hosts, compatibility, and artifacts. Hosts need enough signed information to select and verify an appropriate package while retaining control of installation and execution.
+Marketplace admission records that the host team reviewed the plugin's purpose and its stable trust boundary. It is not a repeated approval queue for every software version.
 
-A shared catalog can serve a public website and product-specific marketplace views. A host normally presents compatible plugins; a general website can show all supported hosts and explain compatibility requirements.
+## Ownership
 
-## Scope
-
-The marketplace covers plugin discovery, publisher metadata, release indexing, signed catalogs, and artifact distribution. Plugin runtimes, business APIs, private data, and lifecycle transactions belong to each host as described in [Architecture](governance.md).
-
-All plugin source lives in independent repositories. The market maintains `catalogs/zboard.json` and `catalogs/znet-sink.json` together on `main`. The source registry format is documented in [Registry format](registry-format.md); signed runtime distribution remains the proposal described here. Marketplace participation requires metadata submission, not source relocation.
-
-## Release model
-
-The proposed catalog groups releases under a stable plugin ID, with separate installable artifacts for each target host.
-
-| Metadata | Purpose |
+| Component | Owns |
 | --- | --- |
-| Plugin ID, publisher, version | Stable identity and release ownership |
-| Host ID and host version range | Target application and compatible versions |
-| Package format and API versions | Installation and runtime contracts; UI bridge version where applicable |
-| OS and architecture | Supported runtime targets, or an explicit platform-independent designation |
-| Capabilities and contributions | Required host operations and contributed interfaces |
-| Artifact URL, byte length, SHA-256 | Immutable download identity and integrity |
-| Signature and key identifier | Artifact provenance |
+| Marketplace directory | Admission, identity, repository, publisher key, metadata/release-source pointers, host scope, capability and UI ceilings, withdrawal |
+| Plugin repository | Basic information, source, Stable/RC/Dev lifecycle, immutable release metadata, packages, digests, compatibility and release notes |
+| Host | Browse/search UI, release discovery, channel and exact-version selection, signature and policy enforcement, install/upgrade/downgrade/uninstall, local state and audit |
+| Offline import | Development testing, private distribution, local customization, and non-market plugins under explicit administrator trust |
 
-One artifact targets one host. A host artifact may contain multiple platform binaries and UI surfaces. Releases for different hosts may evolve independently, even when they belong to the same plugin listing.
+## Online flow
 
-The signed package manifest or envelope must bind the target host and compatibility requirements. Installers compare package facts with the catalog and enforce the same checks for offline imports. The exact envelope and v2 JSON schema remain open design work.
+1. The host reads its marketplace directory, then obtains basic information from each repository's `marketplace.json`.
+2. On a plugin detail page, the host asks the registered release-source adapter for published versions and release notes.
+3. The host accepts supported Stable, RC, and Dev tags and fetches the selected immutable metadata asset.
+4. The host verifies repository and plugin identity, the admitted publisher key, capability and UI ceilings, target platform, package digest, package signature, and host compatibility.
+5. The administrator installs, upgrades, downgrades, or pins an exact version. Stable is the default channel; RC and Dev are opt-in.
 
-## Trust model
+Release discovery is not authorization. A repository release can be displayed only when it follows the registered adapter, and it can be installed only when its signed package remains inside the admitted boundary.
 
-Catalog signing and package publishing are distinct roles. A host verifies both against its configured trust. Publisher keys delivered through an untrusted catalog cannot bootstrap that trust.
+## Updates and revocation
 
-The catalog can describe withdrawals and key rotations. Host policy defines how those records affect installation and existing instances, including behavior while offline. A marketplace response cannot grant capabilities or delete host business data.
+Routine plugin releases and basic-information changes never modify the directory. Repository relocation, publisher/key rotation, metadata/release-source contract changes, new host support, or broader capabilities/surfaces require marketplace review. The directory also owns suspension and withdrawal signals; hosts decide how those affect installed instances and offline operation.
 
-## Compatibility with ZBoard v1
-
-ZBoard's current parser accepts only schema v1 fields, recognizes `public`, `account`, and `admin` surfaces, and expects `requires.zboard` in packages. Adding v2 fields or client entries to that catalog would break validation.
-
-The publishing layer should therefore provide a shared v2 catalog and independently signed compatibility catalogs. An example relative layout is `catalogs/zboard/v1/catalog.json`; this is a proposed path, not a published endpoint. The compatibility document contains only ZBoard v1 entries and `.zbplugin` artifacts.
-
-Existing ZBoard installations can consume that compatibility catalog without adopting the v2 parser. Download locations must satisfy the host's current direct-HTTPS requirements. Client hosts use their own catalog contract until they implement v2.
-
-## Open decisions
-
-- Exact JSON schema, signed envelope, and host identifier registry.
-- Publisher onboarding, trusted key rotation, and withdrawal policy.
-- Artifact hosting, availability monitoring, and catalog renewal.
-- Version selection across host API versions and platforms.
-- Client runtime capabilities and isolation requirements, owned by the client project.
-
-## Adoption and validation
-
-First settle the distribution contract, then publish and verify ZBoard-compatible artifacts and catalogs. Add v2 consumption to ZBoard and integrate ZNet Sink after its plugin lifecycle and APIs are implemented.
-
-Acceptance should cover cross-host rejection in online and offline paths, catalog/package identity mismatches, signature failures, multi-host and platform selection, v1 compatibility, and host upgrade failure recovery. Each implementation must identify which parts of this proposal it supports.
+The first implemented adapter is GitHub Releases with one marketplace-entry.json per release. Other adapters may be added later without turning the marketplace back into a version ledger.

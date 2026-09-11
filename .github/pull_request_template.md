@@ -1,21 +1,14 @@
-## Listing / 收录信息
+## Change / 改动
 
-Host, plugin ID, version, upstream release and source commit:
-宿主、插件 ID、版本、上游发行地址与源码提交：
+Describe a new admission, listing correction, trust-boundary change, withdrawal, tooling update, or documentation change.
+说明新增准入、条目修正、信任边界变更、撤回、工具或文档改动。
 
-## Changes / 改动
+Routine plugin releases belong in the publisher repository and must not be added here.
+常规插件版本属于开发者仓库，不应在此登记。
 
-Describe a new listing, release update, withdrawal or publisher change.
-说明新增收录、版本更新、撤回或发布者变更。
+## Validation / 验证
 
-## Evidence / 证据
-
-Link publisher/key ownership evidence, package signature verification and host/platform checks.
-提供发布者及公钥归属证据、安装包验签和宿主/平台测试结果。
-
-- [ ] Source and packages remain in the independent repository / 源码与安装包保留在独立仓库
-- [ ] Used `templates/plugin-entry.json` and retained existing releases / 使用条目模板并保留既有发行记录
-- [ ] URLs, SHA-256, byte sizes and compatibility match the signed packages / 地址、摘要、字节数及兼容性与签名包一致
-- [ ] No private keys or credentials / 未包含私钥或凭据
-- [ ] `python3 -m unittest discover -s tests` and `python3 scripts/validate.py`
-- [ ] Documentation updated in both languages where needed / 必要文档已同步中英文
+- [ ] Directory entry contains no release history or artifacts / 目录条目不包含发行历史或安装包
+- [ ] Publisher identity and capability ceiling reviewed / 已审核发布者身份与能力上限
+- [ ] English and Chinese documentation updated together / 中英文文档已同步
+- [ ] Unit tests, directory validation, and diff check pass / 单测、目录校验与差异检查通过
