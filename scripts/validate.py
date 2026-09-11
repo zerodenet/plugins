@@ -46,8 +46,8 @@ def strings(value):
 
 
 def validate_entry(entry, host):
-    fields(entry, ('id', 'repository', 'publisher', 'metadata_source',
-                   'release_source', 'surfaces', 'capabilities'))
+    fields(entry, ('id', 'name', 'description', 'license', 'maintainers', 'repository', 'publisher',
+                   'release_source', 'surfaces', 'capabilities'), ('homepage', 'documentation', 'security'))
     require(matches(r'[a-z0-9][a-z0-9._-]{1,159}', entry['id']), 'invalid plugin ID')
     repository = https(entry['repository'])
     require(repository.hostname == 'github.com' and matches(r'/[\w.-]+/[\w.-]+', repository.path),
@@ -62,10 +62,14 @@ def validate_entry(entry, host):
         key = b''
     require(len(key) == 32, 'publisher must provide an Ed25519 public key')
 
-    metadata = entry['metadata_source']
-    fields(metadata, ('type', 'path'))
-    require(metadata['type'] == 'repository-file', 'unsupported metadata source')
-    require(metadata['path'] == 'marketplace.json', 'repository metadata path must be marketplace.json')
+    require(text(entry['name']) and len(entry['name']) <= 160 and text(entry['description'])
+            and text(entry['license']) and len(entry['license']) <= 160,
+            'invalid registration basic information')
+    require(strings(entry['maintainers']) and 0 < len(entry['maintainers']) <= 20
+            and all(len(value) <= 160 for value in entry['maintainers']), 'invalid maintainers')
+    for field in ('homepage', 'documentation', 'security'):
+        if field in entry:
+            https(entry[field])
 
     source = entry['release_source']
     fields(source, ('type', 'metadata_asset'))

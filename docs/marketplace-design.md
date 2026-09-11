@@ -12,14 +12,14 @@ Marketplace admission records that the host team reviewed the plugin's purpose a
 
 | Component | Owns |
 | --- | --- |
-| Marketplace directory | Admission, identity, repository, publisher key, metadata/release-source pointers, host scope, capability and UI ceilings, withdrawal |
-| Plugin repository | Basic information, source, Stable/RC/Dev lifecycle, immutable release metadata, packages, digests, compatibility and release notes |
+| Marketplace directory | Basic registration information, admission, identity, repository, publisher key, release-source pointers, host scope, capability and UI ceilings, withdrawal |
+| Plugin repository | Source, Stable/RC/Dev lifecycle, immutable release metadata, packages, digests, compatibility and release notes |
 | Host | Browse/search UI, release discovery, channel and exact-version selection, signature and policy enforcement, install/upgrade/downgrade/uninstall, local state and audit |
 | Offline import | Development testing, private distribution, local customization, and non-market plugins under explicit administrator trust |
 
 ## Online flow
 
-1. The host reads its marketplace directory, then obtains basic information from each repository's `marketplace.json`.
+1. The host reads its marketplace directory, then obtains basic information from the marketplace registration.
 2. On a plugin detail page, the host asks the registered release-source adapter for published versions and release notes.
 3. The host accepts supported Stable, RC, and Dev tags and fetches the selected immutable metadata asset.
 4. The host verifies repository and plugin identity, the admitted publisher key, capability and UI ceilings, target platform, package digest, package signature, and host compatibility.
@@ -29,6 +29,6 @@ Release discovery is not authorization. A repository release can be displayed on
 
 ## Updates and revocation
 
-Routine plugin releases and basic-information changes never modify the directory. Repository relocation, publisher/key rotation, metadata/release-source contract changes, new host support, or broader capabilities/surfaces require marketplace review. The directory also owns suspension and withdrawal signals; hosts decide how those affect installed instances and offline operation.
+Routine plugin releases do not modify the directory. Registered basic-information changes are directory updates. Repository relocation, publisher/key rotation, release-source contract changes, new host support, or broader capabilities/surfaces require marketplace review. The directory also owns suspension and withdrawal signals; hosts decide how those affect installed instances and offline operation.
 
 The first implemented adapter is GitHub Releases with one marketplace-entry.json per release. Other adapters may be added later without turning the marketplace back into a version ledger.

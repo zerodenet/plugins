@@ -9,10 +9,6 @@
         "id": "higanbana986",
         "public_key": "k+s2/1J6/R9VSNbc2bcX3C8KRBXVZ+IrSKFButaR4Q4="
       },
-      "metadata_source": {
-        "type": "repository-file",
-        "path": "marketplace.json"
-      },
       "release_source": {
         "type": "github-releases",
         "metadata_asset": "marketplace-entry.json"
@@ -27,6 +23,12 @@
         "zboard.config.v1",
         "zboard.identity.provider.v1",
         "zboard.storage.v1"
+      ],
+      "name": "OAuth for ZBoard",
+      "description": "Sign in to ZBoard with GitHub, Google or a custom OAuth2 / OpenID Connect provider.",
+      "license": "MPL-2.0",
+      "maintainers": [
+        "higanbana986"
       ]
     }
   ]

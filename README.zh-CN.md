@@ -13,7 +13,7 @@
 | ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) |
 | ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | 暂无入驻插件 |
 
-目录条目只保存稳定的准入与入口信息：插件 ID、仓库、发布者公钥、仓库资料入口、发行源适配器、支持的界面范围和审核过的能力上限。名称、说明、许可证、维护者等基础资料由宿主从插件仓库的 `marketplace.json` 读取；版本、产物、摘要、兼容声明及更新说明从插件自己的 Releases 读取。
+目录保存入驻资料：插件 ID、名称、作用、作者/维护者、许可证、资料链接、仓库地址、发布者公钥、发行源、界面范围和能力上限。宿主从插件中心展示基础资料，再根据登记的仓库地址读取 Releases 中的版本、产物、兼容声明和更新说明。
 
 ## 只申请一次
 
@@ -21,7 +21,7 @@
 2. 发布一个正式签名的入驻版本，包含固定安装包和 marketplace-entry.json。
 3. 使用[入驻表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)，或参照[目录条目模板](templates/plugin-entry.json)提交方案。
 
-通过准入后，后续正式版、RC 和 Dev 版只在插件仓库发布，常规发版和基础资料调整不再提交市场 Issue。只有仓库地址、发布者身份或公钥、资料/发行源契约、支持宿主、界面上限或能力上限发生变化时，才需要回来更新登记。
+通过准入后，后续正式版、RC 和 Dev 版只在插件仓库发布，常规发版不再提交市场 Issue，基础入驻资料变化时更新目录。仓库地址、发布者身份或公钥、发行源契约、支持宿主、界面上限或能力上限发生变化时，也需要回来更新登记。
 
 离线导入不依赖市场准入，继续用于开发自测、私有或不便开源的插件、本地 DIY 以及其他自行管理的分发方式。
 

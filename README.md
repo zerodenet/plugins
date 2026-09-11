@@ -13,7 +13,7 @@ This repository is a directory, not a release ledger. Publishers own their Stabl
 | ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) |
 | ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | No admissions yet |
 
-Directory entries contain only stable admission and source pointers: plugin ID, repository, publisher key, repository-metadata source, release-source adapter, supported UI surfaces, and the reviewed capability ceiling. Hosts read names, descriptions, licenses, maintainers, and links from the plugin repository's `marketplace.json`; versions, artifacts, digests, compatibility declarations, and release notes come from the plugin's Releases.
+Directory entries store registration information: plugin ID, name, purpose, authors/maintainers, license, links, repository, publisher key, release-source adapter, supported UI surfaces, and the reviewed capability ceiling. Hosts display basic information from this directory and read versions, artifacts, compatibility declarations, and release notes from the registered repository's Releases.
 
 ## Apply once
 
@@ -21,7 +21,7 @@ Directory entries contain only stable admission and source pointers: plugin ID, 
 2. Publish one stable signed onboarding release with immutable packages and marketplace-entry.json.
 3. Use the [admission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or propose [a directory entry](templates/plugin-entry.json).
 
-After admission, publish new Stable, RC, and Dev versions and basic-information updates only in the plugin repository. Return here only when changing the repository, publisher identity or key, metadata/release-source contract, supported host, UI surface ceiling, or capability ceiling.
+After admission, publish new Stable, RC, and Dev versions only in the plugin repository; update registered basic information in this directory. Other directory updates include changes to the repository, publisher identity or key, release-source contract, supported host, UI surface ceiling, or capability ceiling.
 
 Offline import remains independent of marketplace admission. It supports development testing, private or non-open-source plugins, local customization, and other self-managed distribution.
 

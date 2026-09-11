@@ -30,7 +30,7 @@ class ReleaseAPI:
             'schema_version': 1,
             'id': self.listing['id'],
             'name': 'Example plugin',
-            'description': 'Repository-owned plugin information.',
+            'description': self.listing['description'],
             'repository': self.listing['repository'],
             'license': 'MPL-2.0',
             'maintainers': ['example'],
@@ -71,10 +71,6 @@ class ReleaseAPI:
             return {'id': 1, 'tag_name': self.tag, 'draft': self.draft, 'prerelease': self.prerelease}
         if '/git/ref/tags/' in path:
             return {'object': {'type': 'commit', 'sha': self.commit}}
-        if path.endswith('/contents/marketplace.json'):
-            raw = json.dumps(self.info).encode()
-            return {'type': 'file', 'encoding': 'base64', 'size': len(raw),
-                    'content': base64.b64encode(raw).decode()}
         raise AssertionError(path)
 
     def pages(self, path):
@@ -102,7 +98,6 @@ class SyncTest(unittest.TestCase):
             lambda a: a.assets[1].update(size=2),
             lambda a: a.assets[1].update(digest='sha256:' + 'f' * 64),
             lambda a: a.assets[1].update(browser_download_url='https://example.com/file.zbplugin'),
-            lambda a: a.info.update(name='Repository metadata changed during admission'),
         ):
             with self.subTest(change=change):
                 api = ReleaseAPI()
@@ -160,8 +155,9 @@ class SyncTest(unittest.TestCase):
         proposal = Marketplace(api, 'zerodenet/plugins').propose('zboard', ReleaseAPI().listing, issue)
         self.assertEqual(proposal['number'], 2)
         stored = api.branch_catalog['plugins'][0]
-        self.assertFalse({'name', 'description', 'license', 'maintainers', 'source', 'releases', 'version', 'artifacts'} & stored.keys())
-        self.assertEqual(stored['metadata_source'], {'type': 'repository-file', 'path': 'marketplace.json'})
+        self.assertFalse({'source', 'releases', 'version', 'artifacts'} & stored.keys())
+        self.assertEqual(stored['name'], ReleaseAPI().listing['name'])
+        self.assertNotIn('metadata_source', stored)
 
     def test_downloads_never_redirect_to_arbitrary_hosts_or_credentials(self):
         for url in ('http://github.com/a', 'https://evil.example/a', 'https://127.0.0.1/a',

@@ -15,17 +15,18 @@ Schema 版本 2 描述插件市场准入，明确不保存插件版本、源码�
 | id | 宿主范围内稳定且唯一的插件身份 |
 | repository | 开发者自己维护的公开源码及发行仓库 |
 | publisher.id、publisher.public_key | 经宿主团队准入的稳定包签名身份 |
-| metadata_source | 插件仓库中的基础资料入口；当前为根目录 `marketplace.json` |
+| name、description、license、maintainers | 入驻名称、作用、许可证和作者/维护者 |
+| homepage、documentation、security | 可选的项目资料链接 |
 | release_source | 宿主发现开发者发行版本所用的适配器 |
 | surfaces | 准入允许的最大界面范围 |
 | capabilities | 准入允许的最大宿主能力 |
 
-宿主从登记仓库的 `marketplace.json` 读取名称、说明、许可证、维护者和资料链接。当前发行源适配器为 github-releases；宿主读取 repository 对应的公开 GitHub Releases，并在符合规范的正式版、RC 或 Dev 发行中查找配置的 metadata_asset，同时展示 Release 标题、正文、时间与原始链接。
+宿主从插件中心入驻资料读取名称、说明、许可证、作者/维护者和资料链接。当前发行源适配器为 github-releases；宿主读取 repository 对应的公开 GitHub Releases，并在符合规范的正式版、RC 或 Dev 发行中查找配置的 metadata_asset，同时展示 Release 标题、正文、时间与原始链接。
 
 ## 信任边界
 
 登记的公钥、仓库、发行源适配器、界面范围和能力上限共同构成条目信任边界。宿主仍须校验所选包的签名、身份、版本、摘要、平台和兼容性。即使签名有效，只要安装包请求的界面或能力超出条目上限，也必须拒绝。
 
-常规发版和基础资料调整不修改本目录。仓库迁移、发布者或密钥轮换、资料或发行源契约变更、新增宿主、扩大界面或能力边界时，才提交专门的市场更新；安全撤回同样属于目录操作。
+常规发版不修改本目录；基础入驻资料变化时更新目录。仓库迁移、发布者或密钥轮换、发行源契约变更、新增宿主、扩大界面或能力边界时，才提交专门的市场更新；安全撤回同样属于目录操作。
 
 每个已发布版本的元数据由插件仓库维护并保持不可变，市场不复制其发行历史。

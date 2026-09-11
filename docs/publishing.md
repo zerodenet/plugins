@@ -4,7 +4,7 @@
 
 ## First admission
 
-Add repository-root `marketplace.json`, then publish one stable signed release from the independent plugin repository. Include immutable platform packages, checksums, compatibility declarations, source commit, and marketplace-entry.json. Apply to the marketplace with that metadata URL and evidence for publisher ownership, security maintenance, host behavior, and the requested capability ceiling.
+Publish one stable signed release from the independent plugin repository. Include immutable platform packages, checksums, compatibility declarations, source commit, and marketplace-entry.json. Apply to the marketplace with that metadata URL and evidence for publisher ownership, security maintenance, host behavior, and the requested capability ceiling.
 
 The admission review records stable discovery and trust metadata only. It does not import the onboarding version or any later release into a central release ledger.
 
@@ -24,4 +24,4 @@ Development artifacts signed with disposable CI keys are for isolated offline te
 
 ## Directory updates
 
-Return to the marketplace only for repository relocation, publisher/key rotation, metadata/release-source contract changes, support for another host, capability or surface expansion, or withdrawal. Basic information remains in repository-owned `marketplace.json`. These are admission changes, not releases.
+Return to the marketplace only for repository relocation, publisher/key rotation, release-source contract changes, support for another host, capability or surface expansion, or withdrawal. Basic information remains in the marketplace registration. These are admission changes, not releases.

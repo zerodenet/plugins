@@ -22,8 +22,8 @@ class CatalogTest(unittest.TestCase):
     def test_catalog_contains_only_admission_and_discovery_metadata(self):
         forbidden = {'source', 'releases', 'version', 'artifacts'}
         self.assertFalse(forbidden & self.entry.keys())
-        self.assertFalse({'name', 'description', 'license', 'maintainers'} & self.entry.keys())
-        self.assertEqual(self.entry['metadata_source'], {'type': 'repository-file', 'path': 'marketplace.json'})
+        self.assertTrue({'name', 'description', 'license', 'maintainers'} <= self.entry.keys())
+        self.assertNotIn('metadata_source', self.entry)
         self.assertEqual(self.entry['release_source']['type'], 'github-releases')
 
     def test_rejects_invalid_trust_and_capability_boundaries(self):
@@ -32,7 +32,8 @@ class CatalogTest(unittest.TestCase):
             lambda e: e['publisher'].update(public_key='bad-key'),
             lambda e: e['release_source'].update(type='branch-file'),
             lambda e: e['release_source'].update(metadata_asset='../marketplace-entry.json'),
-            lambda e: e['metadata_source'].update(path='manifest.json'),
+            lambda e: e.update(name=''),
+            lambda e: e.update(maintainers=[]),
             lambda e: e.update(repository='https://127.0.0.1/plugin'),
             lambda e: e.update(surfaces=['admin', 'unknown']),
             lambda e: e.update(capabilities=['znet-sink.shell.v1']),
@@ -59,7 +60,7 @@ class CatalogTest(unittest.TestCase):
     def test_transition_retains_listings_but_does_not_store_release_history(self):
         previous = copy.deepcopy(self.catalog)
         current = copy.deepcopy(self.catalog)
-        current['plugins'][0]['metadata_source']['path'] = 'marketplace.json'
+        current['plugins'][0]['description'] = 'Updated registration description'
         current['plugins'][0]['publisher']['public_key'] = base64.b64encode(b'x' * 32).decode()
         validator.validate_transition(previous, current)
         current['plugins'] = []

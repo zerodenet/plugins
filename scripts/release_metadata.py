@@ -1,11 +1,10 @@
 """Validate one onboarding release and derive a durable marketplace listing."""
-import base64
 import copy
 import hashlib
 import re
 
 from github_api import decode_json, segment
-from validate import HOSTS, fields, https, require, strings, text, validate, validate_entry
+from validate import HOSTS, require, validate, validate_entry
 
 PRE = r'(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)'
 TAG = rf'v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-{PRE}(?:\.{PRE})*)?'
@@ -48,30 +47,6 @@ def listing_entry(github, repository, tag):
     require(document['repository'] == f'https://github.com/{repository}',
             'metadata must belong to the publishing repository')
 
-    record = github.api(f'/repos/{repository}/contents/marketplace.json')
-    require(record.get('type') == 'file' and record.get('encoding') == 'base64'
-            and 0 < record.get('size', 0) <= 64 * 1024,
-            'repository must expose a bounded marketplace.json file')
-    try:
-        repository_raw = base64.b64decode(''.join(record['content'].split()), validate=True)
-    except (KeyError, TypeError, ValueError):
-        repository_raw = b''
-    require(len(repository_raw) == record['size'], 'marketplace.json size or encoding mismatch')
-    information = decode_json(repository_raw)
-    fields(information, ('schema_version', 'id', 'name', 'description', 'repository', 'license', 'maintainers'),
-           ('homepage', 'documentation', 'security'))
-    require(information['schema_version'] == 1 and information['id'] == document['id']
-            and information['repository'] == document['repository'],
-            'marketplace.json identity differs from the onboarding release')
-    require(all(text(information[field]) for field in ('name', 'description', 'license'))
-            and strings(information['maintainers']) and information['maintainers'],
-            'marketplace.json basic information is incomplete')
-    for field in ('homepage', 'documentation', 'security'):
-        if field in information:
-            https(information[field])
-    require(all(information[field] == document[field]
-                for field in ('name', 'description', 'license', 'maintainers')),
-            'onboarding release information differs from marketplace.json')
     require(isinstance(document['releases'], list) and len(document['releases']) == 1,
             'onboarding metadata must describe exactly its own release')
     version = document['releases'][0]
@@ -101,7 +76,7 @@ def listing_entry(github, repository, tag):
         'id': document['id'],
         'repository': document['repository'],
         'publisher': document['publisher'],
-        'metadata_source': {'type': 'repository-file', 'path': 'marketplace.json'},
+        **{key: document[key] for key in ('name', 'description', 'license', 'maintainers')},
         'release_source': {'type': 'github-releases', 'metadata_asset': 'marketplace-entry.json'},
         'surfaces': version.get('surfaces'),
         'capabilities': version.get('capabilities'),

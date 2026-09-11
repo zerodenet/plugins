@@ -7,8 +7,8 @@ body:
     attributes:
       value: |
         Apply once with a stable signed release. After admission, publish Stable, RC and Dev versions only in the plugin repository; do not open a marketplace issue for each version.
-        Keep basic information in the repository root marketplace.json; hosts read it directly instead of copying it into this directory.
-        使用一个正式签名版本申请一次入驻。通过后，正式版、RC 与 Dev 版本只在插件仓库发布，不要为每个版本重复提交市场 Issue。基础资料保存在仓库根目录 marketplace.json，由宿主直接读取。不要提交源码、安装包或私钥。
+        Register the plugin name, purpose, authors and repository in this directory. Hosts read versions from the registered repository's Releases.
+        使用一个正式签名版本申请一次入驻。通过后，正式版、RC 与 Dev 版本只在插件仓库发布，不要为每个版本重复提交市场 Issue。名称、作用、作者和仓库地址等基础资料登记在插件中心，版本信息由宿主从插件仓库 Releases 读取。不要提交源码、安装包或私钥。
   - type: dropdown
     id: host
     attributes:
