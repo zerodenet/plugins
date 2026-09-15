@@ -11,13 +11,14 @@ import marketplace_sync
 
 
 class IssueScopeTest(unittest.TestCase):
-    def run_issue_event(self, event, issue):
+    def run_issue_event(self, event, issue, intake_result=None):
         with tempfile.TemporaryDirectory() as directory:
             event_path = Path(directory) / 'event.json'
             event_path.write_text(json.dumps(event))
             github = Mock(token='test-token')
             github.api.return_value = issue
             market = Mock(prefix='/repos/example/plugins')
+            market.intake.return_value = intake_result
             with patch.dict(os.environ, {
                 'GITHUB_REPOSITORY': 'example/plugins',
                 'GITHUB_EVENT_NAME': 'issues',
@@ -56,17 +57,33 @@ class IssueScopeTest(unittest.TestCase):
             'action': 'labeled', 'issue': {'number': 7},
             'label': {'name': 'status:accepted'}, 'sender': {'type': 'User'},
         }
-        market = self.run_issue_event(event, issue)
+        market = self.run_issue_event(event, issue, {'sha': 'c' * 40})
         market.intake.assert_called_once_with(issue, approve=True)
+        market.dispatch_publication.assert_called_once_with()
 
         event['sender']['type'] = 'Bot'
         market = self.run_issue_event(event, issue)
-        market.intake.assert_called_once_with(issue, approve=False)
+        market.intake.assert_called_once_with(issue)
+        market.dispatch_publication.assert_not_called()
 
         event['sender']['type'] = 'User'
         event['action'] = 'edited'
         market = self.run_issue_event(event, issue)
-        market.intake.assert_called_once_with(issue, approve=False)
+        market.intake.assert_called_once_with(issue)
+        market.dispatch_publication.assert_not_called()
+
+    def test_current_record_does_not_dispatch_another_publication(self):
+        issue = {
+            'number': 7, 'title': '[Plugin] example', 'body': 'body', 'state': 'open',
+            'labels': [{'name': 'plugin:submission'}, {'name': 'status:accepted'}],
+        }
+        event = {
+            'action': 'labeled', 'issue': {'number': 7},
+            'label': {'name': 'status:accepted'}, 'sender': {'type': 'User'},
+        }
+        market = self.run_issue_event(event, issue)
+        market.intake.assert_called_once_with(issue, approve=True)
+        market.dispatch_publication.assert_not_called()
 
     def test_human_closed_label_closes_without_intake(self):
         issue = {

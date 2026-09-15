@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import Mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -200,6 +201,15 @@ class SyncTest(unittest.TestCase):
         self.assertEqual(documents["catalogs/plugins.json"]["products"], [product])
         self.assertEqual(documents["catalogs/zboard.json"]["host"], "zboard")
         self.assertEqual(documents["catalogs/znet-sink.json"]["host"], "znet-sink")
+
+    def test_publication_is_explicitly_dispatched_against_main(self):
+        github = Mock()
+        Marketplace(github, "example/market").dispatch_publication()
+        github.api.assert_called_once_with(
+            "/repos/example/market/actions/workflows/publish-marketplace.yml/dispatches",
+            "POST",
+            {"ref": "main"},
+        )
 
 
 if __name__ == "__main__":

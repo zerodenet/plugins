@@ -16,6 +16,7 @@ HOST_LABELS = {"host:zboard", "host:znet-sink"}
 APPLICATION_LABELS = {"submission": "plugin:submission", "update": "plugin:update"}
 ACCEPTED = "status:accepted"
 CLOSED = "status:closed"
+PUBLICATION_WORKFLOW = "publish-marketplace.yml"
 
 
 def application_kind(issue):
@@ -144,6 +145,14 @@ class Marketplace:
         })
         return commit
 
+    def dispatch_publication(self):
+        """Publish the new main revision through an explicit workflow dispatch."""
+        self.github.api(
+            f"{self.prefix}/actions/workflows/{PUBLICATION_WORKFLOW}/dispatches",
+            "POST",
+            {"ref": "main"},
+        )
+
     def intake(self, issue, approve=False):
         if issue.get("pull_request") or issue["state"] != "open":
             return
@@ -182,6 +191,7 @@ class Marketplace:
                 )
             self.comment(number, message)
             self.github.api(f"{self.prefix}/issues/{number}", "PATCH", {"state": "closed", "state_reason": "completed"})
+            return commit
         else:
             self.status(number, "status:in-review", [application_label, *hosts])
             self.comment(number, (
@@ -224,8 +234,12 @@ def main():
             action = management_action(event)
             if action == CLOSED:
                 market.close_application(issue)
+            elif action == ACCEPTED:
+                commit = market.intake(issue, approve=True)
+                if commit is not None:
+                    market.dispatch_publication()
             else:
-                market.intake(issue, approve=action == ACCEPTED)
+                market.intake(issue)
     else:
         market.reconcile()
 
