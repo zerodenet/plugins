@@ -30,6 +30,35 @@
         "zboard.identity.provider.v1",
         "zboard.storage.v1"
       ]
+    },
+    {
+      "repository": "https://github.com/zerodenet/connect",
+      "publisher": {
+        "id": "zerodenet",
+        "public_key": "/fr8OvitVqcn5EVbZyzRCUyO7h0MDB5O+lhSMsaXHOQ="
+      },
+      "release_source": {
+        "type": "github-releases",
+        "metadata_asset": "marketplace-entry.json"
+      },
+      "name": "Connect",
+      "description": "Connects compatible subscription providers and clients for device authorization, managed subscription synchronization, and read-only provider messages.",
+      "license": "MPL-2.0",
+      "maintainers": [
+        "zerodenet"
+      ],
+      "id": "org.zerodenet.connect.zboard",
+      "surfaces": [
+        "account",
+        "admin"
+      ],
+      "capabilities": [
+        "zboard.ui.page.v1",
+        "zboard.config.v1",
+        "zboard.storage.v1"
+      ],
+      "documentation": "https://github.com/zerodenet/connect/blob/main/README.md",
+      "security": "https://github.com/zerodenet/connect/blob/main/SECURITY.md"
     }
   ]
 }
