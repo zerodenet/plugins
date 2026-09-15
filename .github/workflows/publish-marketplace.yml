@@ -1,0 +1,87 @@
+name: Publish marketplace site
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'catalogs/**'
+      - 'scripts/build_snapshot.py'
+      - 'scripts/marketplace_schema.py'
+      - 'scripts/publish_snapshot.mjs'
+      - 'scripts/static_api.mjs'
+      - 'scripts/static_api.test.mjs'
+      - 'scripts/verify_pages_build.mjs'
+      - 'schemas/**'
+      - 'src/**'
+      - 'astro.config.mjs'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/publish-marketplace.yml'
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  publish:
+    if: github.repository == 'zerodenet/plugins'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: pages
+        uses: actions/configure-pages@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .cache/marketplace-snapshot.json
+          key: marketplace-snapshot-${{ github.run_id }}
+          restore-keys: marketplace-snapshot-
+      - run: pnpm install --frozen-lockfile
+      - run: python3 -m unittest discover -s tests
+      - run: pnpm test:static-api
+      - run: python3 scripts/validate.py
+      - name: Build the bounded publisher snapshot
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/build_snapshot.py --previous .cache/marketplace-snapshot.json
+      - name: Build the GitHub Pages site
+        env:
+          MARKETPLACE_SITE_ORIGIN: ${{ steps.pages.outputs.origin }}
+          MARKETPLACE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: pnpm build:site
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marketplace-${{ github.sha }}
+          path: |
+            dist
+            .generated/marketplace-snapshot.json
+          retention-days: 30
+      - name: Save the last usable snapshot for publisher outages
+        run: |
+          mkdir -p .cache
+          cp .generated/marketplace-snapshot.json .cache/marketplace-snapshot.json
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

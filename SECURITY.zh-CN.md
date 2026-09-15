@@ -18,4 +18,4 @@
 
 包签名用于确认来源和完整性。管理员负责选择可信发布者并审查所需能力。ZBoard 当前将原生插件进程作为受信任代码运行；进程分离不提供操作系统级沙箱。
 
-信任模型见[架构说明](docs/governance.zh-CN.md)，签名密钥处理见[发布指南](docs/publishing.zh-CN.md)。
+信任模型见[架构说明](docs/governance.zh-CN.md)，签名密钥处理见[公开发布指南](https://docs.zerodenet.org/marketplace/publishing)。

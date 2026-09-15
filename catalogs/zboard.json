@@ -3,7 +3,6 @@
   "host": "zboard",
   "plugins": [
     {
-      "id": "zboard.oauth",
       "repository": "https://github.com/higanbana986/zboard-oauth",
       "publisher": {
         "id": "higanbana986",
@@ -13,6 +12,13 @@
         "type": "github-releases",
         "metadata_asset": "marketplace-entry.json"
       },
+      "name": "OAuth for ZBoard",
+      "description": "Sign in to ZBoard with GitHub, Google or a custom OAuth2 / OpenID Connect provider.",
+      "license": "MPL-2.0",
+      "maintainers": [
+        "higanbana986"
+      ],
+      "id": "zboard.oauth",
       "surfaces": [
         "public",
         "account",
@@ -23,12 +29,6 @@
         "zboard.config.v1",
         "zboard.identity.provider.v1",
         "zboard.storage.v1"
-      ],
-      "name": "OAuth for ZBoard",
-      "description": "Sign in to ZBoard with GitHub, Google or a custom OAuth2 / OpenID Connect provider.",
-      "license": "MPL-2.0",
-      "maintainers": [
-        "higanbana986"
       ]
     }
   ]

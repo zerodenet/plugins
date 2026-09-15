@@ -1,0 +1,54 @@
+---
+import ProductCard from '../components/ProductCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { marketplace, products } from '../lib/marketplace';
+const categories = [...new Set(products.flatMap((product) => product.categories))].sort();
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+<BaseLayout title="ZeroDeNet 插件市场">
+  <section class="hero">
+    <p class="eyebrow">ZERODENET 插件市场</p>
+    <h1>发现可靠的插件，<br /><em>拓展更多可能。</em></h1>
+    <p>集中浏览适用于 ZBoard 与 ZNet Sink 的插件。适用版本、发布来源和权限范围清晰可见，安装前再由宿主完成安全校验。</p>
+    <div class="hero-stats"><span><strong>{products.length}</strong> 个已收录产品</span><span><strong>2</strong> 个支持宿主</span><span><strong>安全校验</strong> 后安装</span></div>
+  </section>
+  <section class="directory" aria-labelledby="directory-title">
+    <div class="section-heading"><div><p class="eyebrow">插件目录</p><h2 id="directory-title">插件目录</h2></div><p>快照 {marketplace.snapshot_version.slice(7, 19)} · {marketplace.generated_at.slice(0, 10)}</p></div>
+    <form class="filters" data-market-filters>
+      <label><span>搜索</span><input type="search" name="q" placeholder="名称、简介或发布者" autocomplete="off" /></label>
+      <label><span>宿主</span><select name="host"><option value="">全部宿主</option><option value="zboard">ZBoard</option><option value="znet-sink">ZNet Sink</option></select></label>
+      <label><span>分类</span><select name="category"><option value="">全部分类</option>{categories.map((category) => <option value={category}>{category}</option>)}</select></label>
+    </form>
+    <p class="result-count" data-market-count>{products.length} 个产品</p>
+    <div class="product-grid" data-market-grid>{products.map((product) => <ProductCard product={product} />)}</div>
+    <div class="empty-state" data-market-empty hidden><strong>没有找到匹配的插件</strong><p>调整关键词或宿主筛选后再试。</p></div>
+  </section>
+  <section class="market-services" aria-labelledby="services-title">
+    <div class="section-heading"><div><p class="eyebrow">市场服务</p><h2 id="services-title">从发现到发布，都在这里。</h2></div><p>公开规则与流程无需进入仓库查找</p></div>
+    <div class="resource-grid">
+      <a href={`${base}submit/`}><span>01</span><h3>提交插件</h3><p>在站内准备入驻资料，完成检查后前往 GitHub 确认提交。</p><strong>开始申请 →</strong></a>
+      <a href="https://docs.zerodenet.org/marketplace/"><span>02</span><h3>使用与开发文档</h3><p>了解安装信任、发行流程、审核标准、市场数据和接口边界。</p><strong>查看文档 →</strong></a>
+      <a href="https://docs.zerodenet.org/marketplace/trust"><span>03</span><h3>安全中心</h3><p>查看签名与权限边界，选择正确渠道私密报告安全问题。</p><strong>了解安全政策 →</strong></a>
+    </div>
+  </section>
+  <script>
+    const form = document.querySelector('[data-market-filters]');
+    const cards = [...document.querySelectorAll<HTMLElement>('[data-market-card]')];
+    const count = document.querySelector('[data-market-count]');
+    const empty = document.querySelector<HTMLElement>('[data-market-empty]');
+    form?.addEventListener('input', () => {
+      const data = new FormData(form as HTMLFormElement);
+      const q = String(data.get('q') || '').trim().toLocaleLowerCase();
+      const host = String(data.get('host') || '');
+      const category = String(data.get('category') || '');
+      let visible = 0;
+      for (const card of cards) {
+        const show = (!q || card.dataset.search?.includes(q)) && (!host || card.dataset.hosts?.split(',').includes(host)) && (!category || card.dataset.categories?.split(',').includes(category));
+        card.hidden = !show;
+        if (show) visible += 1;
+      }
+      if (count) count.textContent = `${visible} 个产品`;
+      if (empty) empty.hidden = visible !== 0;
+    });
+  </script>
+</BaseLayout>

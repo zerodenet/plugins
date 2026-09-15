@@ -1,12 +1,12 @@
-# Documentation
+# Maintainer documentation
 
 **English** · [简体中文](README.zh-CN.md)
 
-- [Installation and trust](usage.md)
 - [Registry format](registry-format.md)
-- [Publishing and review](publishing.md)
 - [Registry development](development.md)
 - [Host architecture](governance.md)
-- [Distribution proposal](marketplace-design.md)
+- [Unified marketplace architecture](marketplace-design.md)
+- [Implementation plan](marketplace-implementation-plan.md)
+- [Marketplace implementation status](marketplace-implementation-status.md)
 
-Provider configuration and plugin build instructions belong to the [OAuth repository](https://github.com/higanbana986/zboard-oauth). Registry policies are in [Contributing](../CONTRIBUTING.md), [Governance](../GOVERNANCE.md) and [Security](../SECURITY.md).
+This directory only contains material directly tied to marketplace implementation review and maintenance. Public installation, publishing, security, and API guidance is maintained on the [ZeroDeNet documentation site](https://docs.zerodenet.org/marketplace/). Provider configuration and plugin build instructions belong to each plugin repository. Registry policies are in [Contributing](../CONTRIBUTING.md), [Governance](../GOVERNANCE.md) and [Security](../SECURITY.md).

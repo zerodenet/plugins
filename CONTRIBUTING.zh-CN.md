@@ -2,13 +2,13 @@
 
 [English](CONTRIBUTING.md) · **简体中文**
 
-欢迎提交插件准入、条目修正、信任边界变更、发行源适配器和文档。插件实现与版本发布属于插件自己的仓库。
+欢迎提交插件准入、条目修正、信任边界变更、发行源适配器和仓库级实现文档。插件实现与版本发布属于插件自己的仓库；面向使用者与插件作者的公开说明属于 [ZeroDeNet 文档站](https://github.com/zerodenet/docs)。
 
 ## 准入
 
-使用[申请表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)，或将[条目模板](templates/plugin-entry.json)加入对应宿主目录。申请资料需说明名称、作用、仓库、许可证、作者/维护者、发布者公钥、发行源适配器、界面上限和能力上限，并提供可独立核实的发布者与公钥归属、一个正式入驻版本、安全维护方式及实际宿主和平台证据。
+使用[申请表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)，或参照[产品模板](templates/product-registration.json)修改 `catalogs/plugins.json`。登记一个稳定产品身份，只声明实际支持的宿主目标；每个目标有独立稳定包 ID 和能力/界面上限。还需提供可独立核实的发布者与公钥归属、一个正式入驻版本、安全维护方式及实际宿主和平台证据。
 
-自动化校验入驻发行并生成不含版本信息的目录条目。维护者审核插件立意、仓库控制权、发布者身份、申请的最大能力、迁移与卸载行为、安装包签名及真实宿主证据。
+自动化校验生成的入驻清单并提议不含版本的产品条目。维护者审核插件立意、仓库控制权、发布者身份、各宿主/包身份与最大能力、迁移与卸载行为、安装包签名及真实宿主证据。
 
 ## 后续版本
 
@@ -22,6 +22,8 @@
 
     python3 -m unittest discover -s tests
     python3 scripts/validate.py
+    pnpm test:static-api
+    pnpm build
     git diff --check
 
-CI 检查目录结构、宿主隔离、公钥、适配器、能力上限和条目身份，不执行开发者安装包。中英文文档保持同步，禁止提交凭据、私钥、安装包和工作站数据。
+CI 检查统一注册表、宿主投影、包清单工具、API、站点、公钥和稳定身份，不执行开发者安装包。仓库级中英文参考保持同步；公开文档变更提交到文档站。禁止提交凭据、私钥、安装包、生成快照和工作站数据。

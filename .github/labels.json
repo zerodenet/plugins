@@ -1,5 +1,6 @@
 [
   {"name":"plugin:submission","color":"5319E7","description":"Plugin marketplace admission / 插件市场入驻申请"},
+  {"name":"plugin:update","color":"0969DA","description":"Publisher-submitted marketplace record update / 发布者提交的市场资料更新"},
   {"name":"host:zboard","color":"0052CC","description":"ZBoard plugin / 面板插件"},
   {"name":"host:znet-sink","color":"0E8A16","description":"ZNet Sink plugin / 客户端插件"},
   {"name":"status:needs-info","color":"D93F0B","description":"Metadata needs correction / 需要补充或修正元数据"},

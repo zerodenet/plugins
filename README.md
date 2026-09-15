@@ -2,31 +2,30 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
-The curated plugin directory for [ZBoard](https://github.com/zerodenet/zboard), [ZNet Sink](https://github.com/zerodenet/znet-sink), and future ZeroDeNet hosts. Marketplace admission means the host team reviewed the plugin's purpose, maintainer and signing identity, distribution source, and maximum requested integration boundary.
+The unified plugin marketplace for [ZBoard](https://github.com/zerodenet/zboard), [ZNet Sink](https://github.com/zerodenet/znet-sink), and future ZeroDeNet hosts. Users discover one product, while each product explicitly declares the host packages it supports. Marketplace admission means the host team reviewed purpose, maintainer and signing identity, distribution source, and maximum requested integration boundary.
 
-This repository is a directory, not a release ledger. Publishers own their Stable, RC, and Dev lifecycle in their own repositories. Compatible hosts discover those releases directly, verify packages with the admitted publisher key, and provide online installation, upgrade, downgrade, and channel selection.
+This repository is a product registry and the source of a derived marketplace snapshot, not a manually maintained release ledger. Publishers own their Stable, RC, and Dev lifecycle in their own repositories. The build validates publisher manifests into one snapshot; compatible hosts query it explicitly and independently verify packages with the admitted publisher key.
 
-## Browse plugins
+## Browse and query
 
-| Host | Directory | Available projects |
-| --- | --- | --- |
-| ZBoard | [catalogs/zboard.json](catalogs/zboard.json) | [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth) |
-| ZNet Sink | [catalogs/znet-sink.json](catalogs/znet-sink.json) | No admissions yet |
+The authoritative registry is [catalogs/plugins.json](catalogs/plugins.json). User-facing product fields are copied verbatim from an immutable listing submitted through an Issue Template into an Action-generated review PR; they are not edited directly. GitHub Actions aggregates and validates publisher releases, then atomically publishes the Astro site, unified snapshot, host/channel static JSON API, and schemas through GitHub Pages; `plugins.zerodenet.org` is the recommended marketplace domain. ZBoard and ZNet Sink fetch their fixed host/channel files and select compatible host versions and platforms locally. No Cloudflare Worker is required for the first release. The current registered product is [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth).
 
-Directory entries store registration information: plugin ID, name, purpose, authors/maintainers, license, links, repository, publisher key, release-source adapter, supported UI surfaces, and the reviewed capability ceiling. Hosts display basic information from this directory and read versions, artifacts, compatibility declarations, and release notes from the registered repository's Releases.
+The old [ZBoard](catalogs/zboard.json) and [ZNet Sink](catalogs/znet-sink.json) schema-v2 catalogs are generated compatibility projections during host migration, not independent sources.
+
+Product entries store the publisher's original name, description, categories, links, stable identity, repository, publisher key, release-source adapter, and host targets with durable package IDs and reviewed ceilings. The site renders registered values directly and does not translate, rewrite, or infer missing fields. A build-time snapshot joins validated publisher releases for the site and API; hosts still verify packages locally.
 
 ## Apply once
 
 1. Maintain the plugin in its own repository with a license, setup guide, security contact, and stable signing identity.
 2. Publish one stable signed onboarding release with immutable packages and marketplace-entry.json.
-3. Use the [admission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or propose [a directory entry](templates/plugin-entry.json).
+3. Generate `marketplace-entry.json` from signed packages, then use the [admission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or propose [a product entry](templates/product-registration.json).
 
-After admission, publish new Stable, RC, and Dev versions only in the plugin repository; update registered basic information in this directory. Other directory updates include changes to the repository, publisher identity or key, release-source contract, supported host, UI surface ceiling, or capability ceiling.
+After admission, publish new Stable, RC, and Dev versions only in the plugin repository. Every registration change uses the [record update template](https://github.com/zerodenet/plugins/issues/new?template=update-plugin.yml); automation copies a new immutable listing verbatim into a review PR. Site code must not add product-specific overrides or polished replacement copy.
 
 Offline import remains independent of marketplace admission. It supports development testing, private or non-open-source plugins, local customization, and other self-managed distribution.
 
 ## Repository layout
 
-The catalogs directory contains one curated directory per host; scripts contains admission and validation tooling; templates contains listing examples; and docs defines contracts, publishing policy, and host boundaries.
+The catalogs directory contains the unified product registry and generated projections; src contains the Astro site and static API routes; scripts contains admission, release-manifest, snapshot, and validation tooling; and schemas defines reviewable data boundaries. Repository docs are limited to implementation and maintenance contracts, automation, architecture, and delivery records.
 
-See [registry format](docs/registry-format.md), [publishing](docs/publishing.md), [automation](docs/automation.md), and [architecture](docs/governance.md). English is the reference language; Simplified Chinese guides are maintained alongside it.
+User and publisher guidance for installation, publishing, security, and the API is maintained on the [ZeroDeNet documentation site](https://docs.zerodenet.org/marketplace/). Repository references include [registry format](docs/registry-format.md), [automation](docs/automation.md), [development](docs/development.md), and [architecture](docs/governance.md).

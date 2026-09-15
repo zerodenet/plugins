@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plugins.zerodenet.org/schemas/marketplace-snapshot.schema.json",
+  "title": "ZeroDeNet derived marketplace snapshot v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "snapshot_version", "generated_at", "sources", "products"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "snapshot_version": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "sources": {
+      "type": "object", "additionalProperties": false, "required": ["registry_schema", "stale_products"],
+      "properties": {
+        "registry_schema": { "const": 3 },
+        "stale_products": { "type": "array", "uniqueItems": true, "items": { "type": "string" } }
+      }
+    },
+    "products": { "type": "array", "maxItems": 1000, "items": { "type": "object", "required": ["id", "targets"] } }
+  }
+}

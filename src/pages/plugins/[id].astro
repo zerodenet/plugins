@@ -1,0 +1,110 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { capabilityDescription, channelDescription, hostDescription, surfaceDescription } from '../../lib/host-contracts';
+import { latest, products, type Product } from '../../lib/marketplace';
+
+export function getStaticPaths() {
+  return products.map((product) => ({ params: { id: product.id }, props: { product } }));
+}
+
+const { product } = Astro.props as { product: Product };
+const marketplaceRoot = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const releasesUrl = `${product.repository}/releases`;
+const dateLabel = (value: string) => new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
+  timeZone: 'Asia/Shanghai',
+}).format(new Date(value));
+const sizeLabel = (value: number) => `${(value / 1024 / 1024).toFixed(2)} MiB`;
+---
+<BaseLayout title={`${product.name} · ZeroDeNet 插件市场`} description={product.description}>
+  <section class="detail-hero">
+    <a class="back" href={marketplaceRoot}>← 返回插件目录</a>
+    <div class="detail-title">
+      <span class="monogram large">{product.name.slice(0, 1)}</span>
+      <div>
+        {product.categories.length > 0 && <p class="eyebrow">{product.categories.join(' · ')}</p>}
+        <h1>{product.name}</h1>
+        <p>{product.description}</p>
+      </div>
+    </div>
+    <div class="detail-actions">
+      <a class="button primary" href={product.repository}>查看源代码</a>
+      {product.homepage && <a class="button" href={product.homepage}>项目主页</a>}
+      {product.documentation && <a class="button" href={product.documentation}>安装与使用文档</a>}
+      <a class="button" href="#release-history">查看发布记录</a>
+    </div>
+  </section>
+
+  <div class="detail-layout">
+    <article class="detail-main">
+      <section id="compatibility">
+        <p class="eyebrow">兼容信息</p>
+        <h2>适配与安装</h2>
+        <div class="target-list">
+          {product.targets.map((target) => {
+            const release = latest(target);
+            return <div class="target-card">
+              <div>
+                <div><strong>{hostDescription(target.host) || target.host}</strong><small>宿主标识 <code>{target.host}</code> · 包标识 <code>{target.package_id}</code></small></div>
+                {release && <span class={`channel ${release.channel}`}>{channelDescription(release.channel) || release.channel}</span>}
+              </div>
+              {release ? <>
+                <p>当前版本 <strong>{release.version}</strong></p>
+                <p>支持宿主版本 ≥ <code>{release.host_version.min}</code>{release.host_version.max_exclusive && <> 且 &lt; <code>{release.host_version.max_exclusive}</code></>}</p>
+                <div class="artifact-list">{release.artifacts.map((artifact) => <a href={artifact.url} title={`${artifact.size} 字节`}>{artifact.os}/{artifact.arch} · {sizeLabel(artifact.size)}</a>)}</div>
+              </> : <p>该目标当前没有通过市场清单校验的安装产物。</p>}
+            </div>;
+          })}
+        </div>
+      </section>
+
+      <section id="release-history">
+        <div class="section-row"><div><p class="eyebrow">发布动态</p><h2>发布记录</h2></div><a class="text-link" href={releasesUrl}>在 GitHub 查看全部 →</a></div>
+        {product.release_feed.length ? <div class="release-list">{product.release_feed.map((release) => <article class="release-item">
+          <div class="release-meta"><span class={`channel ${release.channel}`}>{release.prerelease ? '预发布' : '正式发布'}</span><time datetime={release.published_at} title={release.published_at}>{dateLabel(release.published_at)}</time>{release.validated ? <span class="verified-mark">市场清单已验证</span> : <span>未通过市场清单验证</span>}</div>
+          <h3><a href={release.url}>{release.name}</a></h3>
+          {release.body && <p class="release-body">{release.body}</p>}
+          {release.body_truncated && <p class="release-truncated">原始发布正文过长，页面仅保留原文开头；完整内容请打开该发布记录。</p>}
+          <div class="release-foot"><code>{release.tag}</code><span>{release.assets_count} 个附件</span><a href={release.url}>查看原始发布内容 →</a></div>
+        </article>)}</div> : <div class="empty-release"><strong>暂未取得公开发布记录</strong><p>发布记录由市场快照从已登记的 GitHub Releases 发行源读取。</p><a class="text-link" href={releasesUrl}>打开发行页 →</a></div>}
+      </section>
+
+      <section id="permissions">
+        <p class="eyebrow">页面与能力</p>
+        <h2>已登记边界</h2>
+        {product.targets.map((target) => <div class="boundary">
+          <strong><code>{target.host}</code></strong>
+          <div class="permission-group"><span>页面范围</span><ul>{target.surfaces.map((surface) => <li>{surfaceDescription(target.host, surface) && <span>{surfaceDescription(target.host, surface)}</span>}<code>{surface}</code></li>)}</ul></div>
+          <div class="permission-group"><span>申请能力</span><ul>{target.capabilities.map((capability) => <li>{capabilityDescription(target.host, capability) && <span>{capabilityDescription(target.host, capability)}</span>}<code>{capability}</code></li>)}</ul></div>
+        </div>)}
+      </section>
+
+      {product.screenshots?.length && <section><p class="eyebrow">产品截图</p><h2>提交的截图</h2><div class="screenshots">{product.screenshots.map((url) => <img src={url} alt="" loading="lazy" referrerpolicy="no-referrer" />)}</div></section>}
+
+      <section class="reviews-section" id="reviews">
+        <div class="section-row"><div><p class="eyebrow">用户评价</p><h2>评分与评价</h2></div><span class="coming-soon">即将开放</span></div>
+        <div class="review-placeholder"><strong>目前没有评分数据</strong><p>评价功能上线前不展示示例评价或虚构分数。</p></div>
+      </section>
+    </article>
+
+    <aside class="developer-card">
+      <p class="eyebrow">发布者登记</p>
+      <div class="developer-identity"><span>@</span><div><h2>{product.publisher.id}</h2><p>发布者 ID</p></div></div>
+      <div class="developer-links">
+        <a href={product.repository}><span>源代码仓库</span><strong>↗</strong></a>
+        {product.homepage && <a href={product.homepage}><span>项目主页</span><strong>↗</strong></a>}
+        {product.documentation && <a href={product.documentation}><span>使用文档</span><strong>↗</strong></a>}
+        {product.security && <a href={product.security}><span>安全说明</span><strong>↗</strong></a>}
+        <a href={releasesUrl}><span>发行与下载</span><strong>↗</strong></a>
+      </div>
+      <dl>
+        <div><dt>产品 ID</dt><dd><code>{product.id}</code></dd></div>
+        <div><dt>许可证</dt><dd>{product.license}</dd></div>
+        <div><dt>维护者</dt><dd>{product.maintainers.join(', ')}</dd></div>
+        <div><dt>发布者公钥</dt><dd><code>{product.publisher.public_key}</code></dd></div>
+        <div><dt>发行源类型</dt><dd><code>{product.release_source.type}</code></dd></div>
+        <div><dt>发行清单文件</dt><dd><code>{product.release_source.metadata_asset}</code></dd></div>
+      </dl>
+    </aside>
+  </div>
+</BaseLayout>

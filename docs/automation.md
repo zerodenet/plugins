@@ -1,13 +1,15 @@
-# Marketplace admission automation
+# Marketplace automation
 
 **English** · [简体中文](automation.zh-CN.md)
 
-Automation processes first-time admission applications. It does not poll publisher repositories for new versions and never opens one issue or pull request per release.
+Admission and publication are separate workflows.
 
-Applicants provide one immutable marketplace-entry.json from a stable onboarding release. The workflow verifies the repository and tag, source commit, GitHub-recorded asset sizes and digests, and derives a version-free directory entry. It never checks out contributor code or executes packages.
+`marketplace.yml` handles first admission and updates to existing records. It runs reviewed `main` code, validates one stable `marketplace-entry.json`, checks GitHub tag/source and asset records, and copies the complete `listing` verbatim to a dedicated branch before opening a review PR. Names, descriptions, categories, links, and all other product fields are not translated, rewritten, or inferred. Maintainers still review publisher/key ownership, package signatures, every host target and capability ceiling, and actual execution evidence. Contributor packages are never executed.
 
-Maintainers review plugin purpose, publisher/key ownership, capability and surface ceilings, license, security contact, migration and uninstall behavior, and real host evidence before merging the admission PR. Once merged, the host discovers Stable, RC, and Dev releases directly from the admitted repository.
+`publish-marketplace.yml` runs when the registry/site changes, every three hours, or manually. It validates the registry, obtains bounded publisher release metadata at build time, reuses the last valid per-product data during temporary upstream failures, builds the Astro site and host/channel static JSON API, uploads one review artifact, and atomically publishes the site, marketplace snapshot, API, and schemas through GitHub Pages.
 
-Routine releases produce no marketplace event. Registered basic-information changes are directory updates. A new marketplace application or focused directory PR is required only for trust-boundary or source-contract changes. Labels describe application state; they do not publish plugin versions or authorize host capabilities.
+Cloudflare credentials are not required in this phase. The repository needs one setup action: choose **GitHub Actions** under **Settings → Pages → Build and deployment → Source**. Relevant changes on `main` then publish automatically. The build uses the Pages-provided base path, so it also works at the repository URL before a custom domain is enabled.
 
-The workflow runs for application issues, admission PR completion, main updates, and manual reconciliation. There is intentionally no scheduled release synchronization.
+`plugins.zerodenet.org` is the recommended marketplace-specific domain. Configure it in Pages and DNS after the first Pages deployment is accepted. Hosts read `/api/plugins/{host}/{channel}.json` and filter version and platform locally; existing schema-v2 URLs remain a migration-only read fallback. A future Worker is an optional enhancement, not a prerequisite for a usable marketplace.
+
+GitHub credentials exist only in the build job. Visitor browsing never fans out to publisher repositories. A registry withdrawal is applied before stale fallback.

@@ -1,0 +1,39 @@
+name: Update a marketplace record / 更新插件资料
+description: Propose exact publisher-supplied replacements for an existing product record. / 使用发布者提交的原始值更新已登记产品。
+title: '[Plugin update] '
+labels: ['plugin:update']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Publish a stable signed release whose immutable `marketplace-entry.json` contains the complete updated `listing`, then submit that asset URL here. Automation copies the listing fields verbatim into a review pull request. The marketplace does not translate, rewrite, infer, or enhance product metadata.
+        请先发布一个正式签名版本，并在固定的 `marketplace-entry.json` 中携带完整更新后 `listing`，再提交该资产链接。自动化会把清单字段原样复制到待审核 PR；市场不会翻译、改写、推断或美化产品资料。
+  - type: input
+    id: plugin
+    attributes:
+      label: Registered product ID / 已登记产品 ID
+      placeholder: org.example.product
+    validations:
+      required: true
+  - type: input
+    id: metadata
+    attributes:
+      label: Immutable listing metadata URL / 固定资料清单链接
+      description: The URL must identify exactly one public stable GitHub Release asset named marketplace-entry.json. / 必须是公开正式 GitHub Release 中唯一的 marketplace-entry.json 资产。
+      placeholder: https://github.com/owner/plugin/releases/download/v1.1.0/marketplace-entry.json
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Review context / 审核说明
+      description: Explain why the registered record changes. This text is only for review and is never displayed as product information. / 说明登记变更原因；此处文字仅供审核，绝不会展示为产品资料。
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Publisher confirmation / 发布者确认
+      options:
+        - label: The listing contains the exact text and links that should be displayed, with no marketplace translation or rewriting. / listing 已包含应当展示的准确文字和链接，无需市场翻译或改写。
+          required: true

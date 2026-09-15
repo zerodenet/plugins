@@ -1,0 +1,32 @@
+---
+import '../styles/global.css';
+const { title, description = '发现适用于 ZBoard 与 ZNet Sink 的可信插件。' } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const rawBase = import.meta.env.BASE_URL;
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const sitePath = (path = '') => `${base}${path.replace(/^\/+/, '')}`;
+const docsPath = 'https://docs.zerodenet.org/marketplace/';
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#010409" media="(prefers-color-scheme: dark)" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href={sitePath()}><span class="brand-mark">Z</span><span>ZeroDeNet <small>插件市场</small></span></a>
+      <nav aria-label="主导航"><a href={sitePath()}>浏览插件</a><a href={sitePath('submit/')}>提交插件</a><a href={docsPath}>文档</a><a href={`${docsPath}trust`}>安全</a></nav>
+    </header>
+    <main><slot /></main>
+    <footer>
+      <div><strong>ZeroDeNet Plugin Marketplace</strong><p>市场负责发现与可信来源，安装和权限始终由宿主掌控。</p></div>
+      <div class="footer-links"><a href={sitePath('submit/')}>提交插件</a><a href={`${docsPath}publishing`}>开发者指南</a><a href={docsPath}>使用与技术文档</a><a href={`${docsPath}trust`}>安全中心</a><a href="https://github.com/zerodenet/plugins">GitHub 仓库</a></div>
+    </footer>
+  </body>
+</html>

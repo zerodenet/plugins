@@ -24,3 +24,8 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+# Generated marketplace and Astro output
+.generated/
+.astro/
+dist/
+node_modules/

@@ -18,4 +18,4 @@ Reports here may concern registry tampering, publisher impersonation, substitute
 
 Package signatures establish origin and integrity. Administrators select trusted publishers and review requested capabilities. ZBoard's current native plugin processes run as trusted code; process separation does not provide an operating-system sandbox.
 
-See [Architecture](docs/governance.md) for the trust model and [Publishing](docs/publishing.md) for signing-key handling.
+See [Architecture](docs/governance.md) for the trust model and the [public publishing guide](https://docs.zerodenet.org/marketplace/publishing) for signing-key handling.

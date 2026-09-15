@@ -1,34 +1,20 @@
-# Shared marketplace architecture
+# Unified marketplace architecture
 
 **English** · [简体中文](marketplace-design.zh-CN.md)
 
-## Purpose
+Users discover one plugin product. Products explicitly declare one or more host targets; the market never guesses a host from IP, Referer, or User-Agent.
 
-The marketplace is a curated directory and a convenient host entrypoint. It lets ZBoard, ZNet Sink, and future hosts browse admitted plugins and lets users understand, obtain, install, and manage them without copying developer-owned release history into a central repository.
+| Layer | Owner | Durable content |
+| --- | --- | --- |
+| Product registration | Central marketplace | Product ID, verbatim publisher metadata, repository, trusted publisher, release source, host/package identities, reviewed ceilings, withdrawal |
+| Release manifest | Publisher repository | Version/channel, source commit, target packages, host/platform compatibility, size, digest, signature, release notes |
+| Build snapshot | Marketplace build | Publisher release history for the site, validated releases for hosts, freshness, snapshot version |
+| Installation lifecycle | Each host | Final download, signature/policy verification, authorization, install, upgrade, rollback, disable, uninstall, audit |
 
-Marketplace admission records that the host team reviewed the plugin's purpose and its stable trust boundary. It is not a repeated approval queue for every software version.
+The Astro site and static API come from one build. GitHub Actions performs bounded publisher aggregation, and GitHub Pages atomically publishes pre-rendered discovery and detail pages, the complete snapshot, host/channel JSON projections, and schemas. ZBoard and ZNet Sink filter host version, OS, and architecture locally. The first release needs no database, Worker, or visitor GitHub token; a dynamic service is reserved for future authenticated writes, personalization, or genuinely server-side search.
 
-## Ownership
+The site follows Minted Directory Astro's static JSON directory approach. Ever Works informed product cards, detail hierarchy, and publisher/target presentation; the visual system uses conventional white, light-gray, and charcoal foundations, a subdued blue for primary actions, and restrained green and amber for stable and prerelease states. It follows the system light or dark preference. Detail pages expose the developer, documentation, security, support, and release links while distinguishing publisher activity from validated installable releases. The first release only reserves the ratings/reviews position and shows no fabricated score; accounts, review writes, favorites, payments, and an administration backend remain outside scope.
 
-| Component | Owns |
-| --- | --- |
-| Marketplace directory | Basic registration information, admission, identity, repository, publisher key, release-source pointers, host scope, capability and UI ceilings, withdrawal |
-| Plugin repository | Source, Stable/RC/Dev lifecycle, immutable release metadata, packages, digests, compatibility and release notes |
-| Host | Browse/search UI, release discovery, channel and exact-version selection, signature and policy enforcement, install/upgrade/downgrade/uninstall, local state and audit |
-| Offline import | Development testing, private distribution, local customization, and non-market plugins under explicit administrator trust |
+Publisher-supplied names, descriptions, categories, and links are always rendered verbatim. `surfaces` and `capabilities` are host-protocol keys rather than product copy; detail pages may display descriptions from a host-maintained standard dictionary, but must retain each raw key and must not infer unknown meanings. The dictionary must never contain product IDs or product-specific overrides.
 
-## Online flow
-
-1. The host reads its marketplace directory, then obtains basic information from the marketplace registration.
-2. On a plugin detail page, the host asks the registered release-source adapter for published versions and release notes.
-3. The host accepts supported Stable, RC, and Dev tags and fetches the selected immutable metadata asset.
-4. The host verifies repository and plugin identity, the admitted publisher key, capability and UI ceilings, target platform, package digest, package signature, and host compatibility.
-5. The administrator installs, upgrades, downgrades, or pins an exact version. Stable is the default channel; RC and Dev are opt-in.
-
-Release discovery is not authorization. A repository release can be displayed only when it follows the registered adapter, and it can be installed only when its signed package remains inside the admitted boundary.
-
-## Updates and revocation
-
-Routine plugin releases do not modify the directory. Registered basic-information changes are directory updates. Repository relocation, publisher/key rotation, release-source contract changes, new host support, or broader capabilities/surfaces require marketplace review. The directory also owns suspension and withdrawal signals; hosts decide how those affect installed instances and offline operation.
-
-The first implemented adapter is GitHub Releases with one marketplace-entry.json per release. Other adapters may be added later without turning the marketplace back into a version ledger.
+Legacy schema-v2 host catalogs are deterministic projections during migration. They are never edited as a second source. They can be removed only after supported ZBoard and ZNet Sink versions use the unified static API and the documented compatibility window ends.

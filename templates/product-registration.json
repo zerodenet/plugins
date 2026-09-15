@@ -1,0 +1,31 @@
+{
+  "id": "org.example.bridge",
+  "name": "Example bridge",
+  "description": "Connects an explicitly configured ZBoard instance to ZNet Sink.",
+  "categories": ["network"],
+  "license": "MPL-2.0",
+  "maintainers": ["example"],
+  "repository": "https://github.com/example/bridge-plugin",
+  "publisher": {
+    "id": "example",
+    "public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  },
+  "release_source": {
+    "type": "github-releases",
+    "metadata_asset": "marketplace-entry.json"
+  },
+  "targets": [
+    {
+      "host": "zboard",
+      "package_id": "org.example.bridge.zboard",
+      "surfaces": ["admin"],
+      "capabilities": ["zboard.config.v1"]
+    },
+    {
+      "host": "znet-sink",
+      "package_id": "org.example.bridge.sink",
+      "surfaces": [],
+      "capabilities": ["network.request", "storage.read"]
+    }
+  ]
+}

@@ -1,32 +1,31 @@
-# Directory format
+# Unified marketplace contracts
 
 **English** · [简体中文](registry-format.zh-CN.md)
 
-Schema version 2 describes marketplace admission. It deliberately contains no plugin version, source commit, artifact, digest, compatibility range, or release history.
+The marketplace has three explicit layers. None replaces host-side package verification.
 
-## Catalog
+## Product registry
 
-Each host file contains schema_version, host, and plugins. A plugin ID occurs once per host. The same project may apply separately to different hosts because capabilities never cross host boundaries.
+`catalogs/plugins.json` is schema version 3 and is the sole authoritative directory source. First admission and record updates submit an immutable release listing through an Issue Template; the Action copies its `listing` verbatim into a review PR. Names, descriptions, categories, and links must not be edited directly or overridden by site code. A product has a stable `id`, original publisher metadata, repository, admitted publisher key, release-source pointer, and one or two `targets`.
 
-## Plugin entry
+Reviewable JSON Schema files live in [`schemas/`](../schemas/). `scripts/marketplace_schema.py` is the executable strict boundary and additionally checks cross-document identities, host namespaces, transitions, and immutable artifact locations.
 
-| Field | Meaning |
-| --- | --- |
-| id | Stable plugin identity within one host |
-| repository | Publisher-owned public source and release repository |
-| publisher.id, publisher.public_key | Stable package-signing identity admitted by the host team |
-| name, description, license, maintainers | Registered name, purpose, license, and authors/maintainers |
-| homepage, documentation, security | Optional registered project links |
-| release_source | Host adapter used to discover publisher-owned releases |
-| surfaces | Maximum admitted UI surfaces |
-| capabilities | Maximum admitted host capabilities |
+Each target declares `host`, its durable `package_id`, and reviewed `surfaces` and `capabilities` ceilings. A single-host author declares only one target. Product IDs and `(host, package_id)` pairs are unique and cannot be silently reassigned. `withdrawn: true` is the explicit removal signal.
 
-The host reads names, descriptions, licenses, maintainers, and links from the marketplace registration. The current release-source adapter is github-releases. It reads published GitHub Releases, finds the configured metadata_asset in each accepted Stable, RC, or Dev release, and exposes the Release title, body, timestamp, and source link.
+`catalogs/zboard.json` and `catalogs/znet-sink.json` are generated schema-v2 compatibility projections. Run `python3 scripts/generate_catalogs.py`; do not edit them independently.
 
-## Trust boundary
+## Publisher release manifest
 
-The admitted public key, repository, release-source adapter, surfaces, and capabilities form the listing's trust boundary. Hosts must still verify the selected package signature, identity, version, digest, platform, and compatibility. A package requesting a surface or capability outside the listing is rejected even when its signature is valid.
+Every GitHub Release contains one `marketplace-entry.json`. Schema version 1 records `product_id`, registered repository and publisher, source tag and full commit, and exactly one release with:
 
-Routine releases do not modify this directory. Registered basic-information changes are directory updates. Repository transfer, publisher or key rotation, release-source contract changes, new hosts, and broader surfaces or capabilities require a focused marketplace update. Security withdrawals are also directory operations.
+- canonical SemVer, `stable`, `rc`, or `dev` channel, publication time, and release-notes URL;
+- one or two host targets with package ID, inclusive minimum and optional exclusive maximum host version, surfaces, and capabilities;
+- immutable GitHub Release artifacts with OS, architecture, byte size, SHA-256, and package signature.
 
-Release metadata is owned by the plugin repository and should be immutable per published version. The marketplace does not copy it into its own history.
+The release must use registered identities and stay inside every target ceiling. The generator reads signed `.zbplugin` and `.zspkg` packages, checks their embedded identities, and computes size and digest; it never executes them.
+
+## Derived snapshot
+
+`.generated/marketplace-snapshot.json` is schema version 1. It joins current registry information, the publisher's public release feed, and validated releases, and supplies `snapshot_version`, `generated_at`, source freshness, products, targets, releases, compatibility, and artifacts. `release_feed` retains at most 20 recent stable or prerelease updates and marks whether each passed marketplace-manifest validation; only target-level `releases` participate in host installation selection. It is derived build output, not another human-maintained registry.
+
+If one publisher is temporarily unavailable, a build may retain that product's last valid releases and mark it stale. A current registry withdrawal always wins and cannot be restored from stale data.

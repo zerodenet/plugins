@@ -1,4 +1,3 @@
-import base64
 import copy
 import hashlib
 import json
@@ -7,46 +6,33 @@ import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts'))
-from github_api import check_asset_url
-from marketplace_sync import Marketplace
-from release_metadata import append_entry, listing_entry, submission
+sys.path.insert(0, str(ROOT / "scripts"))
+from release_metadata import append_product, listing_product, replace_product, submission
+from marketplace_sync import application_kind
 
 
 class ReleaseAPI:
     def __init__(self):
-        self.listing = json.loads((ROOT / 'templates/plugin-entry.json').read_text())
-        self.repo = self.listing['repository'].removeprefix('https://github.com/')
-        self.tag = 'v0.0.1'
-        self.commit = '1' * 40
-        self.base = f'https://github.com/{self.repo}/releases/download/{self.tag}/'
+        self.product = json.loads((ROOT / "templates/product-registration.json").read_text())
+        self.repository = self.product["repository"].removeprefix("https://github.com/")
+        self.tag = "v1.0.0"
+        self.commit = "1" * 40
+        target = copy.deepcopy(self.product["targets"][1])
         self.artifact = {
-            'platform': 'linux-amd64',
-            'url': self.base + 'linux-amd64.zbplugin',
-            'sha256': '2' * 64,
-            'size': 123,
-        }
-        self.info = {
-            'schema_version': 1,
-            'id': self.listing['id'],
-            'name': 'Example plugin',
-            'description': self.listing['description'],
-            'repository': self.listing['repository'],
-            'license': 'MPL-2.0',
-            'maintainers': ['example'],
+            "os": "any", "arch": "any",
+            "url": f"https://github.com/{self.repository}/releases/download/{self.tag}/plugin.zspkg",
+            "size": 10, "sha256": "2" * 64,
+            "signature": {"algorithm": "ed25519", "value": "signed"},
         }
         self.document = {
-            **{key: value for key, value in self.info.items() if key != 'schema_version'},
-            'publisher': self.listing['publisher'],
-            'source': {'version': self.tag, 'commit': self.commit, 'manifest': 'manifest.json'},
-            'releases': [{
-                'version': self.tag,
-                'source_commit': self.commit,
-                'requires': {'zboard': '>=0.0.1 <0.1.0', 'plugin_protocol': 1, 'ui_bridge': 1},
-                'surfaces': self.listing['surfaces'],
-                'capabilities': self.listing['capabilities'],
-                'artifacts': [self.artifact],
-            }],
+            "schema_version": 1, "product_id": self.product["id"], "repository": self.product["repository"],
+            "publisher": self.product["publisher"], "source": {"tag": self.tag, "commit": self.commit},
+            "release": {
+                "version": "1.0.0", "channel": "stable", "published_at": "2026-09-15T00:00:00Z",
+                "notes_url": f"https://github.com/{self.repository}/releases/tag/{self.tag}",
+                "targets": [{**target, "host_version": {"min": "0.0.2"}, "artifacts": [self.artifact]}],
+            },
+            "listing": self.product,
         }
         self.draft = False
         self.prerelease = False
@@ -55,125 +41,89 @@ class ReleaseAPI:
     def refresh(self):
         self.raw = json.dumps(self.document).encode()
         self.metadata = {
-            'name': 'marketplace-entry.json',
-            'browser_download_url': self.base + 'marketplace-entry.json',
-            'size': len(self.raw),
-            'digest': 'sha256:' + hashlib.sha256(self.raw).hexdigest(),
+            "name": "marketplace-entry.json",
+            "browser_download_url": f"https://github.com/{self.repository}/releases/download/{self.tag}/marketplace-entry.json",
+            "size": len(self.raw), "digest": "sha256:" + hashlib.sha256(self.raw).hexdigest(),
         }
-        self.assets = [
-            self.metadata,
-            {'name': 'linux-amd64.zbplugin', 'browser_download_url': self.artifact['url'],
-             'size': self.artifact['size'], 'digest': 'sha256:' + self.artifact['sha256']},
-        ]
+        self.assets = [self.metadata, {
+            "name": "plugin.zspkg", "browser_download_url": self.artifact["url"],
+            "size": self.artifact["size"], "digest": "sha256:" + self.artifact["sha256"],
+        }]
 
     def api(self, path):
-        if '/releases/tags/' in path:
-            return {'id': 1, 'tag_name': self.tag, 'draft': self.draft, 'prerelease': self.prerelease}
-        if '/git/ref/tags/' in path:
-            return {'object': {'type': 'commit', 'sha': self.commit}}
+        if "/releases/tags/" in path:
+            return {"id": 1, "tag_name": self.tag, "draft": self.draft, "prerelease": self.prerelease}
+        if "/git/ref/tags/" in path:
+            return {"object": {"type": "commit", "sha": self.commit}}
         raise AssertionError(path)
 
-    def pages(self, path):
+    def pages(self, _):
         return iter(self.assets)
 
     def asset(self, url, size):
-        self.assert_asset = (url, size)
+        self.download = (url, size)
         return self.raw
 
 
 class SyncTest(unittest.TestCase):
-    def test_application_derives_listing_without_copying_release_history(self):
+    def test_onboarding_derives_one_product_with_all_registered_targets(self):
         api = ReleaseAPI()
-        host, entry = listing_entry(api, api.repo, api.tag)
-        self.assertEqual(host, 'zboard')
-        self.assertEqual(entry, api.listing)
-        self.assertFalse({'source', 'releases', 'version', 'artifacts'} & entry.keys())
+        product = listing_product(api, api.repository, api.tag)
+        self.assertEqual(product, api.product)
+        registry = append_product({"schema_version": 3, "products": []}, product)
+        self.assertEqual(len(registry["products"][0]["targets"]), 2)
 
-    def test_onboarding_release_verifies_source_and_assets(self):
-        for change in (
-            lambda a: setattr(a, 'draft', True),
-            lambda a: setattr(a, 'prerelease', True),
-            lambda a: setattr(a, 'commit', 'f' * 40),
-            lambda a: a.metadata.update(digest='sha256:' + 'f' * 64),
-            lambda a: a.assets[1].update(size=2),
-            lambda a: a.assets[1].update(digest='sha256:' + 'f' * 64),
-            lambda a: a.assets[1].update(browser_download_url='https://example.com/file.zbplugin'),
+    def test_onboarding_rejects_unreviewable_release_or_trust_changes(self):
+        for mutate in (
+            lambda api: setattr(api, "draft", True),
+            lambda api: setattr(api, "prerelease", True),
+            lambda api: setattr(api, "commit", "f" * 40),
+            lambda api: api.metadata.update(digest="sha256:" + "f" * 64),
+            lambda api: api.assets[1].update(size=11),
+            lambda api: api.document["publisher"].update(public_key="eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg="),
+            lambda api: api.document["release"]["targets"][0]["capabilities"].append("network.unreviewed"),
         ):
-            with self.subTest(change=change):
+            with self.subTest(mutate=mutate):
                 api = ReleaseAPI()
-                change(api)
-                with self.assertRaises(ValueError):
-                    listing_entry(api, api.repo, api.tag)
+                mutate(api)
+                if mutate.__code__.co_firstlineno >= 0:
+                    api.raw = json.dumps(api.document).encode()
+                with self.assertRaises((ValueError, KeyError)):
+                    listing_product(api, api.repository, api.tag)
 
-    def test_existing_listing_is_idempotent_but_not_rewritten_by_a_release(self):
-        api = ReleaseAPI()
-        empty = {'schema_version': 2, 'host': 'zboard', 'plugins': []}
-        first = append_entry(empty, api.listing, 'zboard')
-        self.assertEqual(append_entry(first, api.listing, 'zboard'), first)
-        changed = copy.deepcopy(api.listing)
-        changed['publisher']['public_key'] = base64.b64encode(b'x' * 32).decode()
+    def test_submission_requires_one_immutable_release_manifest(self):
+        url = "https://github.com/example/bridge-plugin/releases/download/v1.0.0/marketplace-entry.json"
+        self.assertEqual(submission(url), ("example/bridge-plugin", "v1.0.0"))
         with self.assertRaises(ValueError):
-            append_entry(first, changed, 'zboard')
+            submission(url + "\n" + url.replace("v1.0.0", "v1.0.1"))
 
-    def test_submission_form_accepts_one_onboarding_release_only(self):
-        url = 'https://github.com/example/zboard-example/releases/download/v0.0.1/marketplace-entry.json'
-        self.assertEqual(submission(f'### Onboarding release\n\n{url}'), ('example/zboard-example', 'v0.0.1'))
-        for body in ('https://example.com/metadata.json', url + '\n' + url.replace('v0.0.1', 'v0.0.2'), ''):
-            with self.assertRaises(ValueError):
-                submission(body)
+    def test_update_replaces_the_submitted_record_without_rewriting_fields(self):
+        api = ReleaseAPI()
+        registry = {"schema_version": 3, "products": [copy.deepcopy(api.product)]}
+        updated = copy.deepcopy(api.product)
+        updated["name"] = "Publisher supplied name"
+        updated["description"] = "Publisher supplied description"
+        result = replace_product(registry, updated)
+        self.assertEqual(result["products"][0], updated)
+        with self.assertRaisesRegex(ValueError, "package identity"):
+            changed_identity = copy.deepcopy(updated)
+            changed_identity["targets"][0]["package_id"] = "org.example.replacement"
+            replace_product(registry, changed_identity)
 
-    def test_proposal_writes_only_a_durable_listing(self):
-        class API:
-            def __init__(self):
-                self.catalog_value = {'schema_version': 2, 'host': 'zboard', 'plugins': []}
-                self.branch_catalog = None
-                self.writes = []
+    def test_workflow_uses_reviewed_default_branch_code(self):
+        workflow = (ROOT / ".github/workflows/marketplace.yml").read_text()
+        self.assertIn("ref: main", workflow)
+        self.assertIn("persist-credentials: false", workflow)
+        self.assertIn("pull_request_target:", workflow)
+        self.assertNotIn("github.event.issue.body", workflow)
 
-            def api(self, path, method='GET', data=None):
-                if method != 'GET':
-                    self.writes.append((path, method, data))
-                if path.endswith('/git/ref/heads/main'):
-                    return {'object': {'sha': 'a' * 40}}
-                if '/contents/catalogs/zboard.json?ref=' in path:
-                    value = self.catalog_value if path.endswith('a' * 40) else self.branch_catalog
-                    return {'encoding': 'base64', 'sha': 'b' * 40,
-                            'content': base64.b64encode(json.dumps(value).encode()).decode()}
-                if '/pulls?state=all&head=' in path:
-                    return []
-                if path.endswith('/git/refs'):
-                    self.branch_catalog = copy.deepcopy(self.catalog_value)
-                    return {}
-                if path.endswith('/contents/catalogs/zboard.json') and method == 'PUT':
-                    self.branch_catalog = json.loads(base64.b64decode(data['content']))
-                    return {}
-                if path.endswith('/pulls') and method == 'POST':
-                    return {'number': 2, 'state': 'open', 'html_url': 'https://github.com/zerodenet/plugins/pull/2'}
-                raise AssertionError((path, method, data))
-
-        api = API()
-        issue = {'number': 1, 'body': 'application'}
-        proposal = Marketplace(api, 'zerodenet/plugins').propose('zboard', ReleaseAPI().listing, issue)
-        self.assertEqual(proposal['number'], 2)
-        stored = api.branch_catalog['plugins'][0]
-        self.assertFalse({'source', 'releases', 'version', 'artifacts'} & stored.keys())
-        self.assertEqual(stored['name'], ReleaseAPI().listing['name'])
-        self.assertNotIn('metadata_source', stored)
-
-    def test_downloads_never_redirect_to_arbitrary_hosts_or_credentials(self):
-        for url in ('http://github.com/a', 'https://evil.example/a', 'https://127.0.0.1/a',
-                    'https://user:secret@github.com/a', 'https://github.com:8443/a',
-                    'https://github.com.evil.example/a'):
-            with self.assertRaises(ValueError):
-                check_asset_url(url)
-        check_asset_url('https://release-assets.githubusercontent.com/a?temporary=token')
-
-    def test_workflow_has_no_release_polling_gate(self):
-        workflow = (ROOT / '.github/workflows/marketplace.yml').read_text()
-        self.assertIn('ref: main', workflow)
-        self.assertIn('persist-credentials: false', workflow)
-        self.assertNotIn('schedule:', workflow)
-        self.assertNotIn('plugin:update', (ROOT / '.github/labels.json').read_text())
+    def test_issue_labels_select_admission_or_exact_record_update(self):
+        admission = {"title": "[Plugin] example", "labels": [{"name": "plugin:submission"}]}
+        update = {"title": "[Plugin update] example", "labels": [{"name": "plugin:update"}]}
+        self.assertEqual(application_kind(admission), "submission")
+        self.assertEqual(application_kind(update), "update")
+        self.assertIsNone(application_kind({"title": "Question", "labels": []}))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

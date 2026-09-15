@@ -1,0 +1,28 @@
+{
+  "name": "@zerodenet/plugin-marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.9.0",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "snapshot:offline": "python3 scripts/build_snapshot.py --fixture tests/fixtures/releases.json",
+    "build": "pnpm snapshot:offline && pnpm build:site",
+    "build:site": "astro check && astro build && node scripts/publish_snapshot.mjs && node scripts/verify_pages_build.mjs",
+    "dev": "pnpm snapshot:offline && astro dev",
+    "test:static-api": "node --test scripts/static_api.test.mjs",
+    "test": "python3 -m unittest discover -s tests && pnpm test:static-api"
+  },
+  "dependencies": {
+    "@astrojs/check": "0.9.4",
+    "astro": "5.5.2",
+    "typescript": "5.6.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "rollup": "4.62.1"
+    }
+  }
+}

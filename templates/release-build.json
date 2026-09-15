@@ -1,0 +1,36 @@
+{
+  "product_id": "org.example.bridge",
+  "repository": "https://github.com/example/bridge-plugin",
+  "publisher": {
+    "id": "example",
+    "public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  },
+  "source_commit": "1111111111111111111111111111111111111111",
+  "channel": "stable",
+  "published_at": "2026-09-15T00:00:00Z",
+  "notes_url": "https://github.com/example/bridge-plugin/releases/tag/v1.0.0",
+  "host_versions": {
+    "zboard": {
+      "min": "0.0.2",
+      "max_exclusive": "0.1.0"
+    },
+    "znet-sink": {
+      "min": "0.0.2",
+      "max_exclusive": "0.1.0"
+    }
+  },
+  "artifacts": [
+    {
+      "path": "dist/bridge-linux-amd64.zbplugin",
+      "url": "https://github.com/example/bridge-plugin/releases/download/v1.0.0/bridge-linux-amd64.zbplugin",
+      "os": "linux",
+      "arch": "amd64"
+    },
+    {
+      "path": "dist/bridge-any.zspkg",
+      "url": "https://github.com/example/bridge-plugin/releases/download/v1.0.0/bridge-any.zspkg",
+      "os": "any",
+      "arch": "any"
+    }
+  ]
+}
