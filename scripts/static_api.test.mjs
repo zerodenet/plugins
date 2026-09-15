@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { artifactSizeLabel } from '../src/lib/presentation.mjs';
 import { buildStaticPage } from './static_api.mjs';
 
 const release = (channel) => ({
@@ -48,4 +49,10 @@ test('a single-host product is published only for its declared host', () => {
   zboardOnly.products[0].targets = [zboardOnly.products[0].targets[0]];
   assert.equal(buildStaticPage(zboardOnly, 'zboard', 'stable').total, 1);
   assert.equal(buildStaticPage(zboardOnly, 'znet-sink', 'stable').total, 0);
+});
+
+test('small package sizes are readable instead of rounding to zero MiB', () => {
+  assert.equal(artifactSizeLabel(1324), '1.29 KiB');
+  assert.equal(artifactSizeLabel(2532), '2.47 KiB');
+  assert.equal(artifactSizeLabel(2 * 1024 * 1024), '2 MiB');
 });
