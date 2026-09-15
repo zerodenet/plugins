@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
-"""Turn first-time product applications into reviewed unified-registry proposals."""
+"""Validate marketplace Issues and apply maintainer label decisions."""
 import base64
-import hashlib
 import json
 import os
 from pathlib import Path
 import re
 
 from github_api import GitHub, GitHubError, decode_json, segment
-from marketplace_schema import require
+from marketplace_schema import HOSTS, project_host, require
 from release_metadata import append_product, listing_product, replace_product, submission
 
 ROOT = Path(__file__).resolve().parents[1]
 STATES = {"status:needs-info", "status:in-review", "status:accepted", "status:closed"}
 HOST_LABELS = {"host:zboard", "host:znet-sink"}
 APPLICATION_LABELS = {"submission": "plugin:submission", "update": "plugin:update"}
+ACCEPTED = "status:accepted"
+CLOSED = "status:closed"
 
 
 def application_kind(issue):
@@ -30,6 +31,30 @@ def application_kind(issue):
 
 def is_submission(issue):
     return application_kind(issue) is not None
+
+
+def label_names(issue):
+    return {label["name"] for label in issue.get("labels", [])}
+
+
+def management_action(event):
+    """Return a human maintainer decision carried by one management label event."""
+    if event.get("action") != "labeled" or event.get("sender", {}).get("type") != "User":
+        return None
+    name = event.get("label", {}).get("name")
+    return name if name in {ACCEPTED, CLOSED} else None
+
+
+def catalog_documents(registry):
+    """Render the authoritative registry and migration-only host projections together."""
+    documents = {"catalogs/plugins.json": registry}
+    for host in sorted(HOSTS):
+        documents[f"catalogs/{host}.json"] = project_host(registry, host)
+    return documents
+
+
+def render_json(document):
+    return json.dumps(document, indent=2, ensure_ascii=False) + "\n"
 
 
 class Marketplace:
@@ -75,50 +100,51 @@ class Marketplace:
         require(record.get("encoding") == "base64", "registry is not a GitHub text blob")
         return decode_json(base64.b64decode(record["content"])), record["sha"]
 
-    def propose(self, product, issue, kind):
+    def fresh_approval(self, issue):
+        fresh = self.github.api(f"{self.prefix}/issues/{issue['number']}")
+        require(fresh.get("body") == issue.get("body") and fresh.get("state") == "open",
+                "application changed while admission was running; review it again")
+        require(application_kind(fresh) == application_kind(issue),
+                "application type changed while admission was running; review it again")
+        require(ACCEPTED in label_names(fresh), "maintainer approval label was removed")
+        return fresh
+
+    def apply(self, product, issue, kind):
+        """Create one atomic main-branch commit without opening an admission PR."""
         base = self.github.api(self.prefix + "/git/ref/heads/main")["object"]["sha"]
-        registry, blob = self.registry(base)
+        registry, _ = self.registry(base)
         updated = replace_product(registry, product) if kind == "update" else append_product(registry, product)
         if registry == updated:
             return None
-        branch = f"automation/products/{product['id']}-{issue['number']}"
-        owner = self.repository.split("/")[0]
-        proposals = self.github.api(self.prefix + "/pulls?state=all&head=" + segment(owner + ":" + branch))
-        if proposals:
-            return proposals[0]
-        encoded = base64.b64encode((json.dumps(updated, indent=2, ensure_ascii=False) + "\n").encode()).decode()
-        try:
-            self.github.api(self.prefix + "/git/refs", "POST", {"ref": "refs/heads/" + branch, "sha": base})
-        except GitHubError as error:
-            if error.status != 422:
-                raise
-        previous, previous_blob = self.registry(branch)
-        if previous != updated:
-            require(previous_blob == blob, "automation branch no longer matches main")
-            self.github.api(self.prefix + "/contents/catalogs/plugins.json", "PUT", {
-                "message": f"registry: list {product['id']}", "branch": branch,
-                "sha": blob, "content": encoded,
-                "author": {"name": "github-actions[bot]", "email": "41898282+github-actions[bot]@users.noreply.github.com"},
+        self.fresh_approval(issue)
+        base_commit = self.github.api(f"{self.prefix}/git/commits/{base}")
+        entries = []
+        for path, document in catalog_documents(updated).items():
+            blob = self.github.api(self.prefix + "/git/blobs", "POST", {
+                "content": render_json(document), "encoding": "utf-8",
             })
-        digest = hashlib.sha256((issue.get("body") or "").encode()).hexdigest()
-        hosts = ", ".join(target["host"] for target in product["targets"])
-        operation = "Update" if kind == "update" else "Admit"
-        body = (
-            f"{operation} {product['id']} in the unified marketplace for {hosts}.\n\n"
-            "All product-facing fields in this proposal are copied verbatim from the submitted immutable listing. "
-            "The marketplace does not translate, rewrite, or infer product metadata.\n\n"
-            "Review covers product identity, publisher/key ownership, release source, host package identities, "
-            "capability ceilings, license, security contact, package signature, and actual host evidence. "
-            "Routine releases remain in the publisher repository.\n\n"
-            "审核产品身份、发布者与密钥归属、发行源、宿主包身份、能力上限、许可证、安全联系、包签名及实际宿主证据。"
-            "日常版本继续由开发者仓库维护。所有面向用户的产品字段均从本次固定清单原样复制，市场不翻译、不改写、不推断。\n\n"
-            f"Submission: #{issue['number']}\n<!-- marketplace-submission:{issue['number']}:{digest} -->\n")
-        return self.github.api(self.prefix + "/pulls", "POST", {
-            "title": f"registry: {'update' if kind == 'update' else 'list'} {product['id']}",
-            "head": branch, "base": "main", "body": body,
+            entries.append({"path": path, "mode": "100644", "type": "blob", "sha": blob["sha"]})
+        tree = self.github.api(self.prefix + "/git/trees", "POST", {
+            "base_tree": base_commit["tree"]["sha"], "tree": entries,
         })
+        verb = "update" if kind == "update" else "list"
+        commit = self.github.api(self.prefix + "/git/commits", "POST", {
+            "message": f"registry: {verb} {product['id']} (issue #{issue['number']})",
+            "tree": tree["sha"], "parents": [base],
+            "author": {
+                "name": "github-actions[bot]",
+                "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            },
+        })
+        self.fresh_approval(issue)
+        current = self.github.api(self.prefix + "/git/ref/heads/main")["object"]["sha"]
+        require(current == base, "registry changed while admission was running; apply the approval label again")
+        self.github.api(self.prefix + "/git/refs/heads/main", "PATCH", {
+            "sha": commit["sha"], "force": False,
+        })
+        return commit
 
-    def intake(self, issue):
+    def intake(self, issue, approve=False):
         if issue.get("pull_request") or issue["state"] != "open":
             return
         number = issue["number"]
@@ -132,7 +158,7 @@ class Marketplace:
             fresh = self.github.api(f"{self.prefix}/issues/{number}")
             if fresh.get("body") != issue.get("body") or fresh["state"] != "open":
                 return
-            proposal = self.propose(product, issue, kind)
+            commit = self.apply(product, issue, kind) if approve else False
         except GitHubError as error:
             if error.status != 404:
                 raise
@@ -144,39 +170,41 @@ class Marketplace:
             self.comment(number, "Application needs attention / 请修正提交资料：\n\n" + str(error))
             return
         hosts = ["host:" + target["host"] for target in product["targets"]]
-        if proposal is None:
+        if approve:
             self.status(number, "status:accepted", [application_label, *hosts])
-            message = "The submitted product record is now current. / 已按提交的原始资料更新产品登记。" if kind == "update" else "This product is listed. Future versions are discovered from its repository. / 产品已入驻，后续版本由统一快照从开发者仓库发现。"
+            if commit is None:
+                message = "The submitted product record is already current. / 当前产品登记已与提交资料一致。"
+            else:
+                url = f"https://github.com/{self.repository}/commit/{commit['sha']}"
+                message = (
+                    "Maintainer approval applied this record directly from the reviewed Issue. "
+                    f"/ 管理员已通过当前 Issue 完成登记：{url}"
+                )
             self.comment(number, message)
             self.github.api(f"{self.prefix}/issues/{number}", "PATCH", {"state": "closed", "state_reason": "completed"})
         else:
-            state = "status:in-review" if proposal["state"] == "open" else "status:closed"
-            self.status(number, state, [application_label, *hosts])
-            self.comment(number, f"Marketplace admission proposal / 市场入驻 PR：{proposal['html_url']}")
+            self.status(number, "status:in-review", [application_label, *hosts])
+            self.comment(number, (
+                "Metadata validated. A maintainer must review publisher ownership, package signatures, "
+                "capability ceilings, and real host evidence, then apply `status:accepted`. "
+                "/ 元数据校验通过；管理员完成归属、签名、能力边界和真实宿主证据审核后，请添加 `status:accepted`。"
+            ))
+
+    def close_application(self, issue):
+        kind = application_kind(issue)
+        if kind is None or issue.get("state") != "open":
+            return
+        hosts = sorted(label_names(issue) & HOST_LABELS)
+        self.status(issue["number"], CLOSED, [APPLICATION_LABELS[kind], *hosts])
+        self.comment(issue["number"], "Application closed by a maintainer. / 管理员已关闭当前申请。")
+        self.github.api(f"{self.prefix}/issues/{issue['number']}", "PATCH", {
+            "state": "closed", "state_reason": "not_planned",
+        })
 
     def reconcile(self):
         for issue in self.github.pages(self.prefix + "/issues?state=open"):
             if is_submission(issue):
                 self.intake(issue)
-
-    @staticmethod
-    def is_submission(issue):
-        return is_submission(issue)
-
-    def closed_pr(self, pr):
-        if pr["head"]["repo"] is None or pr["head"]["repo"]["full_name"] != self.repository \
-                or not pr["head"]["ref"].startswith("automation/products/"):
-            return
-        self.status(pr["number"], "status:accepted" if pr.get("merged") else "status:closed")
-        match = re.search(r"<!-- marketplace-submission:(\d+):([a-f0-9]{64}) -->", pr.get("body") or "")
-        if match:
-            issue = self.github.api(f"{self.prefix}/issues/{match[1]}")
-            if hashlib.sha256((issue.get("body") or "").encode()).hexdigest() == match[2]:
-                if pr.get("merged"):
-                    self.intake(issue)
-                else:
-                    self.status(issue["number"], "status:closed")
-
 
 def main():
     github = GitHub()
@@ -190,12 +218,14 @@ def main():
         if not is_submission(issue):
             return
         if issue["state"] == "closed":
-            if not any(label["name"] == "status:accepted" for label in issue["labels"]):
-                market.status(issue["number"], "status:closed")
+            if ACCEPTED not in label_names(issue):
+                market.status(issue["number"], CLOSED)
         else:
-            market.intake(issue)
-    elif event_name == "pull_request_target":
-        market.closed_pr(event["pull_request"])
+            action = management_action(event)
+            if action == CLOSED:
+                market.close_application(issue)
+            else:
+                market.intake(issue, approve=action == ACCEPTED)
     else:
         market.reconcile()
 

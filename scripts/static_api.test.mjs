@@ -42,3 +42,10 @@ test('static API omits hosts and channels without validated artifacts', () => {
   assert.equal(buildStaticPage(snapshot, 'znet-sink', 'stable').total, 0);
   assert.equal(buildStaticPage(snapshot, 'zboard', 'rc').total, 0);
 });
+
+test('a single-host product is published only for its declared host', () => {
+  const zboardOnly = structuredClone(snapshot);
+  zboardOnly.products[0].targets = [zboardOnly.products[0].targets[0]];
+  assert.equal(buildStaticPage(zboardOnly, 'zboard', 'stable').total, 1);
+  assert.equal(buildStaticPage(zboardOnly, 'znet-sink', 'stable').total, 0);
+});

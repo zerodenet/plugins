@@ -6,15 +6,15 @@ Contributions include new plugin admissions, listing corrections, trust-boundary
 
 ## Admission
 
-Use the [application form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or copy [the product template](templates/product-registration.json) into `catalogs/plugins.json`. Provide one stable product identity and only the host targets actually supported. Each target has its own durable package ID and capability/UI ceilings. Include independently verifiable publisher/key ownership, one stable onboarding release, security maintenance, and actual host/platform evidence.
+Use the [application form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml). Do not edit `catalogs/plugins.json` or open an admission PR. Provide one stable product identity and only the host targets actually supported. Each target has its own durable package ID and capability/UI ceilings. Include independently verifiable publisher/key ownership, one stable onboarding release, security maintenance, and actual host/platform evidence.
 
-Automation verifies the generated onboarding manifest and proposes a version-free product entry. Maintainers review purpose, repository control, publisher identity, every host/package identity and maximum capability, migration and uninstall behavior, package signature, and real host evidence.
+Automation verifies the generated onboarding manifest and marks the Issue in review. Maintainers review purpose, repository control, publisher identity, every host/package identity and maximum capability, migration and uninstall behavior, package signature, and real host evidence on that Issue. Applying `status:accepted` records approval and triggers the Action to commit the product entry and generated host projections directly; `status:closed` closes it without admission.
 
 ## Later releases
 
 Do not add versions, artifacts, digests, compatibility declarations, or release notes to this repository. After admission, publishers release Stable, RC, and Dev versions in their own repositories. Hosts discover and enforce them against the admitted boundary.
 
-Use a focused marketplace PR for repository transfer, publisher/key rotation, release-source contract changes, another host, broader capabilities or UI surfaces, suspension, or withdrawal. Update registered basic information in this directory; routine releases require no directory update.
+Use the marketplace record-update Issue for repository transfer, publisher/key rotation, release-source contract changes, another host, broader capabilities or UI surfaces, suspension, withdrawal, or registered basic-information changes. These changes require the same maintainer label decision. Routine releases require no directory update. Pull requests remain the contribution path for marketplace implementation and policy code, not plugin admission decisions.
 
 ## Validation
 

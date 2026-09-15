@@ -8,7 +8,7 @@ This repository is a product registry and the source of a derived marketplace sn
 
 ## Browse and query
 
-The authoritative registry is [catalogs/plugins.json](catalogs/plugins.json). User-facing product fields are copied verbatim from an immutable listing submitted through an Issue Template into an Action-generated review PR; they are not edited directly. GitHub Actions aggregates and validates publisher releases, then atomically publishes the Astro site, unified snapshot, host/channel static JSON API, and schemas through GitHub Pages; `plugins.zerodenet.org` is the recommended marketplace domain. ZBoard and ZNet Sink fetch their fixed host/channel files and select compatible host versions and platforms locally. No Cloudflare Worker is required for the first release. The current registered product is [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth).
+The authoritative registry is [catalogs/plugins.json](catalogs/plugins.json). User-facing product fields are copied verbatim from an immutable listing submitted through an Issue Template; they are not edited directly. The Action validates the application and leaves it in review until a maintainer applies `status:accepted`, then atomically commits the unified registry and generated host projections to `main` without an admission PR. GitHub Actions aggregates and validates publisher releases, then publishes the Astro site, unified snapshot, host/channel static JSON API, and schemas through GitHub Pages; `plugins.zerodenet.org` is the recommended marketplace domain. ZBoard and ZNet Sink fetch their fixed host/channel files and select compatible host versions and platforms locally. No Cloudflare Worker is required for the first release. The current registered product is [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth).
 
 The old [ZBoard](catalogs/zboard.json) and [ZNet Sink](catalogs/znet-sink.json) schema-v2 catalogs are generated compatibility projections during host migration, not independent sources.
 
@@ -18,9 +18,9 @@ Product entries store the publisher's original name, description, categories, li
 
 1. Maintain the plugin in its own repository with a license, setup guide, security contact, and stable signing identity.
 2. Publish one stable signed onboarding release with immutable packages and marketplace-entry.json.
-3. Generate `marketplace-entry.json` from signed packages, then use the [admission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or propose [a product entry](templates/product-registration.json).
+3. Generate `marketplace-entry.json` from signed packages, then use the [admission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml). Plugin admission is reviewed and decided on that Issue, not through a contributor-edited catalog or a separate admission PR.
 
-After admission, publish new Stable, RC, and Dev versions only in the plugin repository. Every registration change uses the [record update template](https://github.com/zerodenet/plugins/issues/new?template=update-plugin.yml); automation copies a new immutable listing verbatim into a review PR. Site code must not add product-specific overrides or polished replacement copy.
+After admission, publish new Stable, RC, and Dev versions only in the plugin repository. Every registration change uses the [record update template](https://github.com/zerodenet/plugins/issues/new?template=update-plugin.yml); after maintainer approval on that Issue, automation commits the new immutable listing verbatim. Site code must not add product-specific overrides or polished replacement copy.
 
 Offline import remains independent of marketplace admission. It supports development testing, private or non-open-source plugins, local customization, and other self-managed distribution.
 

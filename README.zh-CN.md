@@ -8,7 +8,7 @@
 
 ## 浏览与查询
 
-权威注册表是 [catalogs/plugins.json](catalogs/plugins.json)，面向用户的产品字段由 Issue Template 提交的固定发行清单经 Action 原样写入待审核 PR，不直接手工编辑。首发由 GitHub Actions 汇总并校验作者发行，再通过 GitHub Pages 原子发布 Astro 网站、统一快照、按宿主/频道拆分的静态 JSON API 和 schema，推荐市场域名为 `plugins.zerodenet.org`。ZBoard 与 ZNet Sink 下载对应宿主/频道文件，在本地按宿主版本、系统和架构选择产物；无需 Cloudflare Worker。当前已登记产品为 [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth)。
+权威注册表只有 [catalogs/plugins.json](catalogs/plugins.json) 一个，面向用户的产品字段由 Issue Template 提交固定发行清单，不直接手工编辑。Action 校验申请并保持待审核；管理员添加 `status:accepted` 后，才把统一登记和迁移期宿主输出原子提交到 `main`，不另建入驻 PR。首发由 GitHub Actions 汇总并校验作者发行，再通过 GitHub Pages 发布 Astro 网站、统一快照、按宿主/频道拆分的静态 JSON API 和 schema，推荐市场域名为 `plugins.zerodenet.org`。ZBoard 与 ZNet Sink 下载对应宿主/频道文件，在本地按宿主版本、系统和架构选择产物；无需 Cloudflare Worker。当前已登记产品为 [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth)。
 
 旧 [ZBoard](catalogs/zboard.json) 与 [ZNet Sink](catalogs/znet-sink.json) schema-v2 目录是宿主迁移期的自动兼容投影，不是独立来源。
 
@@ -18,9 +18,9 @@
 
 1. 在独立仓库维护插件，提供许可证、配置指南、安全联系渠道及稳定签名身份。
 2. 发布一个正式签名的入驻版本，包含固定安装包和 marketplace-entry.json。
-3. 从签名安装包生成 `marketplace-entry.json`，再使用[入驻表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)，或参照[产品条目模板](templates/product-registration.json)提交方案。
+3. 从签名安装包生成 `marketplace-entry.json`，再使用[入驻表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)。插件准入只在该 Issue 审核和决定，不由投稿人修改目录，也不另开入驻 PR。
 
-通过准入后，后续正式版、RC 和 Dev 版只在插件仓库发布，常规发版不再提交市场 Issue。任何登记资料变化都使用[资料更新模板](https://github.com/zerodenet/plugins/issues/new?template=update-plugin.yml)，由 Action 从新的固定清单原样生成审核 PR；网站代码不得添加插件专属覆盖或美化文案。
+通过准入后，后续正式版、RC 和 Dev 版只在插件仓库发布，常规发版不再提交市场 Issue。任何登记资料变化都使用[资料更新模板](https://github.com/zerodenet/plugins/issues/new?template=update-plugin.yml)；管理员在该 Issue 批准后，Action 从新的固定清单原样登记；网站代码不得添加插件专属覆盖或美化文案。
 
 离线导入不依赖市场准入，继续用于开发自测、私有或不便开源的插件、本地 DIY 以及其他自行管理的分发方式。
 

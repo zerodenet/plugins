@@ -1,3 +1,4 @@
+import base64
 import copy
 import hashlib
 import json
@@ -8,7 +9,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from release_metadata import append_product, listing_product, replace_product, submission
-from marketplace_sync import application_kind
+from marketplace_sync import Marketplace, application_kind, catalog_documents, management_action
 
 
 class ReleaseAPI:
@@ -65,6 +66,43 @@ class ReleaseAPI:
         return self.raw
 
 
+class AdmissionGitHub:
+    def __init__(self, product, issue):
+        self.base = "a" * 40
+        self.registry = {"schema_version": 3, "products": []}
+        self.product = product
+        self.issue = issue
+        self.calls = []
+        self.blobs = {}
+
+    def api(self, path, method="GET", data=None):
+        self.calls.append((path, method, data))
+        prefix = "/repos/example/market"
+        if path == prefix + "/git/ref/heads/main" and method == "GET":
+            return {"object": {"sha": self.base}}
+        if path == prefix + f"/contents/catalogs/plugins.json?ref={self.base}":
+            raw = json.dumps(self.registry).encode()
+            return {"encoding": "base64", "content": base64.b64encode(raw).decode(), "sha": "registry-blob"}
+        if path == prefix + "/issues/7":
+            return copy.deepcopy(self.issue)
+        if path == prefix + f"/git/commits/{self.base}":
+            return {"tree": {"sha": "base-tree"}}
+        if path == prefix + "/git/blobs" and method == "POST":
+            sha = f"blob-{len(self.blobs)}"
+            self.blobs[sha] = data["content"]
+            return {"sha": sha}
+        if path == prefix + "/git/trees" and method == "POST":
+            self.tree = data
+            return {"sha": "new-tree"}
+        if path == prefix + "/git/commits" and method == "POST":
+            self.commit = data
+            return {"sha": "new-commit"}
+        if path == prefix + "/git/refs/heads/main" and method == "PATCH":
+            self.ref_update = data
+            return {"object": {"sha": data["sha"]}}
+        raise AssertionError((path, method, data))
+
+
 class SyncTest(unittest.TestCase):
     def test_onboarding_derives_one_product_with_all_registered_targets(self):
         api = ReleaseAPI()
@@ -114,7 +152,8 @@ class SyncTest(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/marketplace.yml").read_text()
         self.assertIn("ref: main", workflow)
         self.assertIn("persist-credentials: false", workflow)
-        self.assertIn("pull_request_target:", workflow)
+        self.assertNotIn("pull_request_target:", workflow)
+        self.assertNotIn("pull-requests: write", workflow)
         self.assertNotIn("github.event.issue.body", workflow)
 
     def test_issue_labels_select_admission_or_exact_record_update(self):
@@ -123,6 +162,44 @@ class SyncTest(unittest.TestCase):
         self.assertEqual(application_kind(admission), "submission")
         self.assertEqual(application_kind(update), "update")
         self.assertIsNone(application_kind({"title": "Question", "labels": []}))
+
+    def test_only_human_decision_label_events_request_management_actions(self):
+        event = {"action": "labeled", "label": {"name": "status:accepted"},
+                 "sender": {"type": "User"}}
+        self.assertEqual(management_action(event), "status:accepted")
+        event["label"]["name"] = "status:closed"
+        self.assertEqual(management_action(event), "status:closed")
+        event["sender"]["type"] = "Bot"
+        self.assertIsNone(management_action(event))
+        event["sender"]["type"] = "User"
+        event["action"] = "edited"
+        self.assertIsNone(management_action(event))
+
+    def test_approval_atomically_commits_registry_and_both_host_projections(self):
+        product = json.loads((ROOT / "templates/product-registration.json").read_text())
+        issue = {
+            "number": 7,
+            "title": "[Plugin] example",
+            "body": "reviewed body",
+            "state": "open",
+            "labels": [{"name": "plugin:submission"}, {"name": "status:accepted"}],
+        }
+        github = AdmissionGitHub(product, issue)
+        commit = Marketplace(github, "example/market").apply(product, issue, "submission")
+
+        self.assertEqual(commit["sha"], "new-commit")
+        self.assertEqual(github.ref_update, {"sha": "new-commit", "force": False})
+        self.assertEqual(github.tree["base_tree"], "base-tree")
+        paths = {entry["path"] for entry in github.tree["tree"]}
+        self.assertEqual(paths, set(catalog_documents({"schema_version": 3, "products": [product]})))
+        self.assertFalse(any("/pulls" in path for path, _, _ in github.calls))
+        documents = {
+            entry["path"]: json.loads(github.blobs[entry["sha"]])
+            for entry in github.tree["tree"]
+        }
+        self.assertEqual(documents["catalogs/plugins.json"]["products"], [product])
+        self.assertEqual(documents["catalogs/zboard.json"]["host"], "zboard")
+        self.assertEqual(documents["catalogs/znet-sink.json"]["host"], "znet-sink")
 
 
 if __name__ == "__main__":

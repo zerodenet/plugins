@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Publish a stable signed release whose immutable `marketplace-entry.json` contains the complete updated `listing`, then submit that asset URL here. Automation copies the listing fields verbatim into a review pull request. The marketplace does not translate, rewrite, infer, or enhance product metadata.
-        请先发布一个正式签名版本，并在固定的 `marketplace-entry.json` 中携带完整更新后 `listing`，再提交该资产链接。自动化会把清单字段原样复制到待审核 PR；市场不会翻译、改写、推断或美化产品资料。
+        Publish a stable signed release whose immutable `marketplace-entry.json` contains the complete updated `listing`, then submit that asset URL here. Automation validates this Issue; after a maintainer applies `status:accepted`, it commits the listing fields verbatim without an admission pull request. The marketplace does not translate, rewrite, infer, or enhance product metadata.
+        请先发布一个正式签名版本，并在固定的 `marketplace-entry.json` 中携带完整更新后 `listing`，再提交该资产链接。自动化校验当前 Issue；管理员添加 `status:accepted` 后，Action 直接原样登记清单字段，不另建入驻 PR。市场不会翻译、改写、推断或美化产品资料。
   - type: input
     id: plugin
     attributes:

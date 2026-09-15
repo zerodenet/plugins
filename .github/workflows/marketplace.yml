@@ -2,9 +2,6 @@ name: Marketplace synchronization
 on:
   issues:
     types: [opened, edited, reopened, labeled, closed]
-  pull_request_target:
-    types: [closed]
-    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
@@ -20,7 +17,6 @@ jobs:
     permissions:
       contents: write
       issues: write
-      pull-requests: write
     steps:
       # Privileged events always run reviewed default-branch code, never a
       # contributor checkout or anything extracted from a plugin package.
@@ -33,7 +29,7 @@ jobs:
           python-version: '3.12'
       - run: python3 -m unittest discover -s tests
       - run: python3 scripts/validate.py
-      - name: Maintain labels and process admission applications
+      - name: Validate applications and apply maintainer label decisions
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/marketplace_sync.py

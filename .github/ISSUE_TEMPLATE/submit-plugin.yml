@@ -8,6 +8,8 @@ body:
       value: |
         Apply one product with a stable signed release. A product may contain one ZBoard target, one ZNet Sink target, or both. Single-host authors do not declare empty targets. After admission, publish Stable, RC and Dev releases only in the plugin repository.
         用一个正式签名版本申请一个产品；可以只支持 ZBoard、只支持 ZNet Sink，或同时提供两个目标。单宿主作者不用声明空目标。通过后，正式版、RC 与 Dev 版本只在插件仓库发布。不要提交源码、安装包或私钥。
+        Automation validates this Issue and marks it in review. A maintainer approves by applying `status:accepted`; the Action then updates the marketplace directly without an admission pull request.
+        自动化会校验当前 Issue 并标记为待审核；管理员添加 `status:accepted` 后，Action 直接更新市场，不另建入驻 PR。
   - type: checkboxes
     id: hosts
     attributes:

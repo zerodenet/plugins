@@ -6,7 +6,7 @@
 
 ## 产品注册
 
-`catalogs/plugins.json` 使用 schema 3，是唯一权威目录来源。首次入驻或资料更新都通过 Issue Template 提交固定发行清单，Action 从清单中的 `listing` 原样生成待审核 PR；不得直接编辑或由站点代码覆盖名称、简介、分类和链接。一个产品保存稳定 `id`、发布者原始资料、仓库、已审核发布者公钥、发行源指针，以及一到两个 `targets`。
+`catalogs/plugins.json` 使用 schema 3，是唯一权威目录来源。首次入驻或资料更新都通过 Issue Template 提交固定发行清单；管理员在该 Issue 添加 `status:accepted` 后，Action 才会把清单中的 `listing` 原样与自动生成的宿主投影一起提交，不另建入驻 PR。不得直接编辑或由站点代码覆盖名称、简介、分类和链接。一个产品保存稳定 `id`、发布者原始资料、仓库、已审核发布者公钥、发行源指针，以及一到两个 `targets`。
 
 可评审的 JSON Schema 位于 [`schemas/`](../schemas/)；`scripts/marketplace_schema.py` 是实际执行的严格边界，还会校验跨文档身份、宿主能力命名空间、迁移约束和不可变产物地址。
 

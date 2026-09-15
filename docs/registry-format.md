@@ -6,7 +6,7 @@ The marketplace has three explicit layers. None replaces host-side package verif
 
 ## Product registry
 
-`catalogs/plugins.json` is schema version 3 and is the sole authoritative directory source. First admission and record updates submit an immutable release listing through an Issue Template; the Action copies its `listing` verbatim into a review PR. Names, descriptions, categories, and links must not be edited directly or overridden by site code. A product has a stable `id`, original publisher metadata, repository, admitted publisher key, release-source pointer, and one or two `targets`.
+`catalogs/plugins.json` is schema version 3 and is the sole authoritative directory source. First admission and record updates submit an immutable release listing through an Issue Template. After a maintainer applies `status:accepted` on that Issue, the Action commits its `listing` verbatim together with the generated host projections; no admission PR is created. Names, descriptions, categories, and links must not be edited directly or overridden by site code. A product has a stable `id`, original publisher metadata, repository, admitted publisher key, release-source pointer, and one or two `targets`.
 
 Reviewable JSON Schema files live in [`schemas/`](../schemas/). `scripts/marketplace_schema.py` is the executable strict boundary and additionally checks cross-document identities, host namespaces, transitions, and immutable artifact locations.
 

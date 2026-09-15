@@ -67,7 +67,7 @@ def append_product(registry, product):
         result["products"].append(copy.deepcopy(product))
     else:
         require(old == product,
-                "product already exists; trust, source, target, or capability changes need a focused marketplace PR")
+                "product already exists; trust, source, target, or capability changes need the marketplace update form")
     validate_registry(result)
     return result
 
