@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { artifactSizeLabel } from '../src/lib/presentation.mjs';
+import { artifactSizeLabel, hostVersionLabel } from '../src/lib/presentation.mjs';
 import { buildStaticPage } from './static_api.mjs';
 
 const release = (channel) => ({
@@ -55,4 +55,12 @@ test('small package sizes are readable instead of rounding to zero MiB', () => {
   assert.equal(artifactSizeLabel(1324), '1.29 KiB');
   assert.equal(artifactSizeLabel(2532), '2.47 KiB');
   assert.equal(artifactSizeLabel(2 * 1024 * 1024), '2 MiB');
+});
+
+test('host version text includes only compatibility bounds supplied by the publisher', () => {
+  assert.equal(hostVersionLabel({ min: '0.0.2' }), '≥ 0.0.2');
+  assert.equal(
+    hostVersionLabel({ min: '0.0.2', max_exclusive: '0.1.0' }),
+    '≥ 0.0.2 且 < 0.1.0',
+  );
 });

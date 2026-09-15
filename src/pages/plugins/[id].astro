@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { capabilityDescription, channelDescription, hostDescription, surfaceDescription } from '../../lib/host-contracts';
 import { latest, products, type Product } from '../../lib/marketplace';
-import { artifactSizeLabel } from '../../lib/presentation.mjs';
+import { artifactSizeLabel, hostVersionLabel } from '../../lib/presentation.mjs';
 
 export function getStaticPaths() {
   return products.map((product) => ({ params: { id: product.id }, props: { product } }));
@@ -50,7 +50,7 @@ const dateLabel = (value: string) => new Intl.DateTimeFormat('zh-CN', {
               </div>
               {release ? <>
                 <p>当前版本 <strong>{release.version}</strong></p>
-                <p>最低宿主版本 <code>{release.host_version.min}</code></p>
+                <p>支持宿主版本 <code>{hostVersionLabel(release.host_version)}</code></p>
                 <div class="artifact-list">{release.artifacts.map((artifact) => <a href={artifact.url} title={`${artifact.size} 字节`}>{artifact.os}/{artifact.arch} · {artifactSizeLabel(artifact.size)}</a>)}</div>
               </> : <p>该目标当前没有通过市场清单校验的安装产物。</p>}
             </div>;
