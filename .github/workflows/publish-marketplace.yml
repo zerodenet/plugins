@@ -114,20 +114,23 @@ jobs:
           MARKETPLACE_SITE_ORIGIN: https://plugins.zerodenet.org
           MARKETPLACE_BASE_PATH: /
         run: pnpm build:site
-      - name: Verify Cloudflare deployment settings
+      - name: Require CLOUDFLARE_API_TOKEN
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: test -n "$CLOUDFLARE_API_TOKEN"
+      - name: Require CLOUDFLARE_ACCOUNT_ID
+        env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_PLUGINS_PROJECT: ${{ secrets.CLOUDFLARE_PLUGINS_PROJECT }}
-        run: |
-          test -n "$CLOUDFLARE_API_TOKEN"
-          test -n "$CLOUDFLARE_ACCOUNT_ID"
-          test -n "$CLOUDFLARE_PLUGINS_PROJECT"
+        run: test -n "$CLOUDFLARE_ACCOUNT_ID"
+      - name: Require CLOUDFLARE_PLUGINS_PROJECT
+        env:
+          CLOUDFLARE_PLUGINS_PROJECT: ${{ secrets.CLOUDFLARE_PLUGINS_PROJECT || vars.CLOUDFLARE_PLUGINS_PROJECT }}
+        run: test -n "$CLOUDFLARE_PLUGINS_PROJECT"
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_PLUGINS_PROJECT: ${{ secrets.CLOUDFLARE_PLUGINS_PROJECT }}
+          CLOUDFLARE_PLUGINS_PROJECT: ${{ secrets.CLOUDFLARE_PLUGINS_PROJECT || vars.CLOUDFLARE_PLUGINS_PROJECT }}
         run: >-
           pnpm exec wrangler pages deploy dist
           --project-name="$CLOUDFLARE_PLUGINS_PROJECT"
