@@ -27,4 +27,4 @@
 
 ## 当前发布边界
 
-GitHub Pages 已从 `main` 发布并作为备用地址。Cloudflare 部署使用组织级账号和 Token，以及插件仓库可见的 `CLOUDFLARE_PLUGINS_PROJECT=zero-plugins`；首次成功部署后再把 `plugins.zerodenet.org` 绑定到该项目。两套 Pages 同步发布静态网站、统一快照、`/api/plugins.json`、六个宿主/频道 JSON 和 schema。现有 schema-v2 投影继续可用，两个宿主在统一静态 API 不可用或返回无效响应时只读回退，不改变安装安全边界。
+GitHub Pages 已从 `main` 发布并作为备用地址。Cloudflare 部署使用组织级账号和 Token，项目名固定为 `zero-plugins`，可由同名 Secret 或 Variable 覆盖；首次成功部署后再把 `plugins.zerodenet.org` 绑定到该项目。两套 Pages 同步发布静态网站、统一快照、`/api/plugins.json`、六个宿主/频道 JSON 和 schema。现有 schema-v2 投影继续可用，两个宿主在统一静态 API 不可用或返回无效响应时只读回退，不改变安装安全边界。

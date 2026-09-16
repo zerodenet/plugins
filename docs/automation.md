@@ -10,7 +10,7 @@ GitHub restricts label management to repository collaborators with the required 
 
 `publish-marketplace.yml` runs when the registry/site changes, every three hours, or manually. It validates the registry, obtains bounded publisher release metadata at build time, reuses the last valid per-product data during temporary upstream failures, and builds repository-path and root-path outputs from the same snapshot for GitHub Pages and Cloudflare Pages. The site, marketplace snapshot, API, and schemas retain one snapshot version within the run.
 
-Cloudflare Direct Upload uses the organization-level `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, and the plugin-repository-scoped `CLOUDFLARE_PLUGINS_PROJECT`; the project name is `zero-plugins`. The token only needs Cloudflare Pages edit access for the target account. GitHub Pages continues to publish the `/plugins/` path as an independent fallback.
+Cloudflare Direct Upload uses the organization-level `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`. The public project name is fixed as `zero-plugins`; the workflow prefers a `CLOUDFLARE_PLUGINS_PROJECT` Secret or Variable and falls back to that fixed value when neither is configured. The token only needs Cloudflare Pages edit access for the target account. GitHub Pages continues to publish the `/plugins/` path as an independent fallback.
 
 The production domain `plugins.zerodenet.org` is attached to the Cloudflare Pages project. Hosts read `/api/plugins/{host}/{channel}.json` and filter version and platform locally; existing schema-v2 URLs remain a migration-only read fallback. A future Worker is an optional enhancement, not a prerequisite for a usable marketplace.
 

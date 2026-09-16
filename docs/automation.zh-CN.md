@@ -10,7 +10,7 @@ GitHub 只允许具备相应仓库角色的协作者管理标签；工作流仅�
 
 `publish-marketplace.yml` 在注册/网站变化、每三小时或人工触发时运行。它校验注册表，在构建期有界读取作者发行，作者仓库暂时失败时复用该产品上次有效数据，再从同一快照分别构建 GitHub Pages 仓库路径版本和 Cloudflare Pages 根路径版本。网站、市场快照、API 和 schema 保持同一次运行、同一快照版本。
 
-Cloudflare Direct Upload 使用组织级 `CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_API_TOKEN` 和仅授权给插件仓库的 `CLOUDFLARE_PLUGINS_PROJECT`；项目名为 `zero-plugins`。Token 只需目标账号的 Cloudflare Pages 编辑权限。GitHub Pages 继续发布 `/plugins/` 路径，作为独立备用地址。
+Cloudflare Direct Upload 使用组织级 `CLOUDFLARE_ACCOUNT_ID` 与 `CLOUDFLARE_API_TOKEN`。项目名公开固定为 `zero-plugins`；工作流优先读取 `CLOUDFLARE_PLUGINS_PROJECT` Secret 或 Variable，并在未配置时使用该固定值。Token 只需目标账号的 Cloudflare Pages 编辑权限。GitHub Pages 继续发布 `/plugins/` 路径，作为独立备用地址。
 
 正式域名 `plugins.zerodenet.org` 绑定到 Cloudflare Pages 项目，宿主读取 `/api/plugins/{host}/{channel}.json`，再在本地按版本与平台筛选；既有 schema-v2 地址仅作迁移期只读回退。未来若引入 Worker，它是可选增强，不是静态市场可用性的前置条件。
 
