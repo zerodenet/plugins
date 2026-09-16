@@ -23,8 +23,8 @@
 - [x] P3：完成有边界的 GitHub 汇总、最近 20 条正式版/预发布动态、发布动态与已验证安装版本分离、最后可用数据回退、撤回优先、统一快照、六个宿主/频道静态 API、构建验证及客户端本地过滤测试。
 - [x] P4：完成 Astro 列表、搜索、宿主与分类筛选、发布者登记值与已提交链接、发布记录、surfaces/capabilities 原 key 与宿主标准说明、评分/评价预留位、站内首次入驻与资料更新入口、文档站公开说明入口，以及无已验证产物时隐藏下载入口；安装、发布、安全与 API 说明统一归属 `docs.zerodenet.org/marketplace/`，市场仓库不保存第二份公开文案。产品字段不翻译、不改写、不推断缺失值，协议说明字典不包含插件专属覆盖；用户登录 GitHub 确认 Issue，管理员用状态标签审核，Action 直接提交已批准登记。已完成桌面与 390×844 移动视口检查。
 - [ ] P5：ZBoard 与 ZNet Sink 的代码接入和兼容回退已完成，聚焦测试已通过；仍需部署后的真实签名包安装、升级和原数据保留 E2E，且没有双宿主真实包时不宣称双端验收。
-- [ ] P6：定时/变更触发构建、审核产物、Pages 路径适配，以及网站、快照、六个宿主/频道 API 与 schema 的 GitHub Pages 自动发布已配置；仍需启用 Pages、合并到 `main`、首次线上验收，再配置 `plugins.zerodenet.org`，并完成缓存刷新和回滚演练。
+- [ ] P6：定时/变更触发构建、审核产物、GitHub Pages 仓库路径备用发布已验收；Cloudflare Pages 根路径构建和 `zero-plugins` Direct Upload 已配置。仍需验收首次 Cloudflare 部署、绑定 `plugins.zerodenet.org`，并完成缓存刷新和回滚演练。
 
 ## 当前发布边界
 
-当前交付止于功能分支，不代表已合并或部署。首发不需要 Cloudflare 凭据；需要在 `zerodenet/plugins` 的 Pages 设置中一次性选择 GitHub Actions，合并后核验 GitHub Pages 地址，再把 `plugins.zerodenet.org` 配为自定义域名。Pages 首期同步发布静态网站、统一快照、`/api/plugins.json`、六个宿主/频道 JSON 和 schema。现有 schema-v2 投影继续可用，两个宿主在统一静态 API 不可用或返回无效响应时只读回退，不改变安装安全边界。
+GitHub Pages 已从 `main` 发布并作为备用地址。Cloudflare 部署使用组织级账号和 Token，以及插件仓库可见的 `CLOUDFLARE_PLUGINS_PROJECT=zero-plugins`；首次成功部署后再把 `plugins.zerodenet.org` 绑定到该项目。两套 Pages 同步发布静态网站、统一快照、`/api/plugins.json`、六个宿主/频道 JSON 和 schema。现有 schema-v2 投影继续可用，两个宿主在统一静态 API 不可用或返回无效响应时只读回退，不改变安装安全边界。

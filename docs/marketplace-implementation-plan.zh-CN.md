@@ -19,7 +19,7 @@
 
 `GET /api/plugins.json` 提供网站发现使用的完整快照；`GET /api/plugins/{host}/{channel}.json` 提供按 ZBoard/ZNet Sink 与 Stable/RC/Dev 在构建期拆分的候选发行。宿主在本地按 `host_version`、`os` 与 `arch` 严格筛选，不借用另一宿主或不兼容平台的产物。源码已登记但无已验证产物时只出现在完整快照，不进入宿主频道文件。
 
-Astro 页面和静态 JSON API 使用同一次构建结果，由 GitHub Pages 原子发布页面、快照、宿主/频道文件和 schema。首发不依赖 Cloudflare Worker。GitHub 凭据只在构建环境；在线浏览不逐项访问作者仓库。临时上游故障保留并标记最后可用发行，显式撤回始终优先。未来只有在出现鉴权写入、个性化或确需服务端检索时才考虑动态服务。
+Astro 页面和静态 JSON API 使用同一次快照结果，由 Cloudflare Pages 发布根路径正式站点，并由 GitHub Pages 保留仓库路径备用站点；两者都包含页面、快照、宿主/频道文件和 schema。首发不依赖 Cloudflare Worker。GitHub 凭据只在构建环境；在线浏览不逐项访问作者仓库。临时上游故障保留并标记最后可用发行，显式撤回始终优先。未来只有在出现鉴权写入、个性化或确需服务端检索时才考虑动态服务。
 
 ## 阶段与验收
 
@@ -49,6 +49,6 @@ Astro 页面和静态 JSON API 使用同一次构建结果，由 GitHub Pages �
 
 ### P6 部署
 
-配置定时/登记变化触发和 GitHub Pages 自动发布，验收仓库路径下的线上搜索、详情、完整快照、六个宿主/频道 API 文件与 schema；推荐随后把 `plugins.zerodenet.org` 配为市场专用域名。验收双宿主本地兼容筛选、缓存刷新、上游故障和回滚。各阶段分开记录本地代码、提交、推送、部署及真实安装证据。
+配置定时/登记变化触发、Cloudflare Pages 正式发布与 GitHub Pages 备用发布，验收根路径和仓库路径下的线上搜索、详情、完整快照、六个宿主/频道 API 文件与 schema；把 `plugins.zerodenet.org` 绑定到 `zero-plugins` 项目。验收双宿主本地兼容筛选、缓存刷新、上游故障和回滚。各阶段分开记录本地代码、提交、推送、部署及真实安装证据。
 
 实施证据与尚未完成的发布边界见[实施状态](marketplace-implementation-status.zh-CN.md)。

@@ -75,6 +75,7 @@ jobs:
           path: |
             dist
             .generated/marketplace-snapshot.json
+          include-hidden-files: true
           retention-days: 30
       - name: Save the last usable snapshot for publisher outages
         run: |
@@ -86,3 +87,48 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  cloudflare:
+    if: github.repository == 'zerodenet/plugins'
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: marketplace-${{ github.sha }}
+          path: .
+      - name: Build the Cloudflare Pages site
+        env:
+          MARKETPLACE_SITE_ORIGIN: https://plugins.zerodenet.org
+          MARKETPLACE_BASE_PATH: /
+        run: pnpm build:site
+      - name: Verify Cloudflare deployment settings
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PLUGINS_PROJECT: ${{ secrets.CLOUDFLARE_PLUGINS_PROJECT }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_PLUGINS_PROJECT"
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PLUGINS_PROJECT: ${{ secrets.CLOUDFLARE_PLUGINS_PROJECT }}
+        run: >-
+          pnpm exec wrangler pages deploy dist
+          --project-name="$CLOUDFLARE_PLUGINS_PROJECT"
+          --branch=main

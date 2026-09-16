@@ -8,10 +8,10 @@
 
 GitHub 只允许具备相应仓库角色的协作者管理标签；工作流仅把真人触发的两个决定标签视为管理操作。编辑、重新打开、机器人标签、推送和手动校准都只能重新验证，不能批准。Issue 正文发生变化后，批准标签会被移除，必须由管理员重新审核并再次添加。写入前还会确认 Issue 与 `main` 均未发生变化，并发冲突会关闭写入而不是覆盖。
 
-`publish-marketplace.yml` 在注册/网站变化、每三小时或人工触发时运行。它校验注册表，在构建期有界读取作者发行，作者仓库暂时失败时复用该产品上次有效数据，构建 Astro 站点与按宿主/频道拆分的静态 JSON API，上传整体审核产物，并通过 GitHub Pages 原子发布网站、市场快照、API 和 schema。
+`publish-marketplace.yml` 在注册/网站变化、每三小时或人工触发时运行。它校验注册表，在构建期有界读取作者发行，作者仓库暂时失败时复用该产品上次有效数据，再从同一快照分别构建 GitHub Pages 仓库路径版本和 Cloudflare Pages 根路径版本。网站、市场快照、API 和 schema 保持同一次运行、同一快照版本。
 
-当前阶段不需要 Cloudflare 账号或密钥。仓库只需在 **Settings → Pages → Build and deployment → Source** 一次性选择 **GitHub Actions**；此后 `main` 的相关变更会自动发布。仓库路径部署使用 Pages 提供的 base path，因此自定义域名启用前也能正常浏览。
+Cloudflare Direct Upload 使用组织级 `CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_API_TOKEN` 和仅授权给插件仓库的 `CLOUDFLARE_PLUGINS_PROJECT`；项目名为 `zero-plugins`。Token 只需目标账号的 Cloudflare Pages 编辑权限。GitHub Pages 继续发布 `/plugins/` 路径，作为独立备用地址。
 
-推荐把 `plugins.zerodenet.org` 作为市场专用域名；待 GitHub Pages 首次发布验收后，再配置 Pages 自定义域名与对应 DNS。宿主读取 `/api/plugins/{host}/{channel}.json`，再在本地按版本与平台筛选；既有 schema-v2 地址仅作迁移期只读回退。未来若引入 Worker，它是可选增强，不是静态市场可用性的前置条件。
+正式域名 `plugins.zerodenet.org` 绑定到 Cloudflare Pages 项目，宿主读取 `/api/plugins/{host}/{channel}.json`，再在本地按版本与平台筛选；既有 schema-v2 地址仅作迁移期只读回退。未来若引入 Worker，它是可选增强，不是静态市场可用性的前置条件。
 
 GitHub 凭据只存在于构建任务；访客浏览不会逐个请求作者仓库。入驻提交只会在 Issue 标签审核决定后产生，普通市场发布仍由另一条工作流负责。显式撤回仍先于陈旧缓存处理。

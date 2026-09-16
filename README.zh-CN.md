@@ -8,7 +8,7 @@
 
 ## 浏览与查询
 
-权威注册表只有 [catalogs/plugins.json](catalogs/plugins.json) 一个，面向用户的产品字段由 Issue Template 提交固定发行清单，不直接手工编辑。Action 校验申请并保持待审核；管理员添加 `status:accepted` 后，才把统一登记和迁移期宿主输出原子提交到 `main`，不另建入驻 PR。首发由 GitHub Actions 汇总并校验作者发行，再通过 GitHub Pages 发布 Astro 网站、统一快照、按宿主/频道拆分的静态 JSON API 和 schema，推荐市场域名为 `plugins.zerodenet.org`。ZBoard 与 ZNet Sink 下载对应宿主/频道文件，在本地按宿主版本、系统和架构选择产物；无需 Cloudflare Worker。当前已登记产品为 [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth)。
+权威注册表只有 [catalogs/plugins.json](catalogs/plugins.json) 一个，面向用户的产品字段由 Issue Template 提交固定发行清单，不直接手工编辑。Action 校验申请并保持待审核；管理员添加 `status:accepted` 后，才把统一登记和迁移期宿主输出原子提交到 `main`，不另建入驻 PR。首发由 GitHub Actions 汇总并校验作者发行，再把 Astro 网站、统一快照、按宿主/频道拆分的静态 JSON API 和 schema 发布到 Cloudflare Pages，并保留 GitHub Pages 备用地址；正式域名为 `plugins.zerodenet.org`。ZBoard 与 ZNet Sink 下载对应宿主/频道文件，在本地按宿主版本、系统和架构选择产物；无需 Cloudflare Worker。当前已登记产品为 [OAuth for ZBoard](https://github.com/higanbana986/zboard-oauth)。
 
 旧 [ZBoard](catalogs/zboard.json) 与 [ZNet Sink](catalogs/znet-sink.json) schema-v2 目录是宿主迁移期的自动兼容投影，不是独立来源。
 
