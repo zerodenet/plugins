@@ -2,6 +2,9 @@
 
 **English** · [简体中文](marketplace-implementation-status.zh-CN.md)
 
+
+Current contract (2026-09-28): the marketplace only registers and discovers plugins. Technical validation automatically records listings without maintainer approval. Capability/UI declarations are descriptive; hosts own user confirmation and authorization. The historical label-review workflow below is superseded.
+
 This page records implementation evidence for the marketplace plan. A branch commit or push does not claim merge, deployment, or production installation acceptance.
 
 ## Migration baseline

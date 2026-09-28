@@ -6,7 +6,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from build_snapshot import GitHub, build
+from build_snapshot import GitHub, build, normalize_legacy
 from urllib.parse import urlsplit
 
 
@@ -104,6 +104,23 @@ class SnapshotTest(unittest.TestCase):
         self.assertEqual(product["release_feed"][0]["body"], "New provider support.\n\nSee the migration notes.")
         self.assertFalse(product["release_feed"][0]["body_truncated"])
         self.assertEqual(snapshot["sources"]["stale_products"], [self.product["id"]])
+
+    def test_legacy_permission_changes_are_metadata_not_registration_limits(self):
+        release = fixture(self.product)["release"]
+        target = release["targets"][0]
+        document = {
+            "id": target["package_id"], "repository": self.product["repository"],
+            "publisher": self.product["publisher"],
+            "releases": [{
+                "version": "v1.0.0", "requires": {"znet-sink": ">=0.0.2 <0.1.0"},
+                "surfaces": ["znet-sink.ui.management.v1"], "capabilities": ["plugin.logs.write"],
+                "artifacts": [{**target["artifacts"][0], "platform": "any"}],
+            }],
+        }
+        normalized = normalize_legacy(self.product, document, {
+            "tag_name": "v1.0.0", "published_at": release["published_at"], "html_url": release["notes_url"],
+        })
+        self.assertEqual(normalized["targets"][0]["capabilities"], ["plugin.logs.write"])
 
     def test_github_redirect_allowlist_excludes_unrelated_hosts(self):
         self.assertTrue(GitHub._allowed(urlsplit("https://release-assets.githubusercontent.com/file")))

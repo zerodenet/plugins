@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate marketplace Issues and apply maintainer label decisions."""
+"""Automatically register publisher metadata after technical validation."""
 import base64
 import json
 import os
@@ -11,10 +11,10 @@ from marketplace_schema import HOSTS, project_host, require
 from release_metadata import append_product, listing_product, replace_product, submission
 
 ROOT = Path(__file__).resolve().parents[1]
-STATES = {"status:needs-info", "status:in-review", "status:accepted", "status:closed"}
+STATES = {"status:needs-info", "status:in-review", "status:accepted", "status:registered", "status:closed"}
 HOST_LABELS = {"host:zboard", "host:znet-sink"}
 APPLICATION_LABELS = {"submission": "plugin:submission", "update": "plugin:update"}
-ACCEPTED = "status:accepted"
+REGISTERED = "status:registered"
 CLOSED = "status:closed"
 PUBLICATION_WORKFLOW = "publish-marketplace.yml"
 
@@ -39,11 +39,11 @@ def label_names(issue):
 
 
 def management_action(event):
-    """Return a human maintainer decision carried by one management label event."""
-    if event.get("action") != "labeled" or event.get("sender", {}).get("type") != "User":
-        return None
-    name = event.get("label", {}).get("name")
-    return name if name in {ACCEPTED, CLOSED} else None
+    """A collaborator may close an invalid record; no label approves registration."""
+    if event.get("action") == "labeled" and event.get("sender", {}).get("type") == "User" \
+            and event.get("label", {}).get("name") == CLOSED:
+        return CLOSED
+    return None
 
 
 def catalog_documents(registry):
@@ -101,23 +101,45 @@ class Marketplace:
         require(record.get("encoding") == "base64", "registry is not a GitHub text blob")
         return decode_json(base64.b64decode(record["content"])), record["sha"]
 
-    def fresh_approval(self, issue):
+    def fresh_submission(self, issue):
         fresh = self.github.api(f"{self.prefix}/issues/{issue['number']}")
         require(fresh.get("body") == issue.get("body") and fresh.get("state") == "open",
-                "application changed while admission was running; review it again")
+                "submission changed while registration was running; retry")
         require(application_kind(fresh) == application_kind(issue),
-                "application type changed while admission was running; review it again")
-        require(ACCEPTED in label_names(fresh), "maintainer approval label was removed")
+                "submission type changed while registration was running; retry")
+        require(fresh.get("user", {}).get("login") == issue.get("user", {}).get("login"),
+                "submission author changed")
         return fresh
+
+    def publisher_control(self, repository, issue):
+        """Check source ownership automatically; never treat metadata prose as proof."""
+        login = issue.get("user", {}).get("login", "")
+        require(re.fullmatch(r"[A-Za-z0-9-]{1,39}", login), "missing publisher GitHub identity")
+        owner = repository.removeprefix("https://github.com/").split("/")[0]
+        if owner.lower() == login.lower():
+            return
+        source = repository.removeprefix("https://github.com/")
+        try:
+            permission = self.github.api(f"/repos/{source}/collaborators/{segment(login)}/permission")
+        except GitHubError as error:
+            if error.status not in (403, 404):
+                raise
+            raise ValueError("submit from the source repository owner or a verifiable write collaborator") from error
+        require(permission.get("permission") in {"write", "maintain", "admin"},
+                "submitter does not control the publisher repository")
 
     def apply(self, product, issue, kind):
         """Create one atomic main-branch commit without opening an admission PR."""
         base = self.github.api(self.prefix + "/git/ref/heads/main")["object"]["sha"]
         registry, _ = self.registry(base)
+        self.publisher_control(product["repository"], issue)
+        previous = next((item for item in registry["products"] if item["id"] == product["id"]), None)
+        if previous is not None and previous["repository"] != product["repository"]:
+            self.publisher_control(previous["repository"], issue)
         updated = replace_product(registry, product) if kind == "update" else append_product(registry, product)
         if registry == updated:
             return None
-        self.fresh_approval(issue)
+        self.fresh_submission(issue)
         base_commit = self.github.api(f"{self.prefix}/git/commits/{base}")
         entries = []
         for path, document in catalog_documents(updated).items():
@@ -137,9 +159,9 @@ class Marketplace:
                 "email": "41898282+github-actions[bot]@users.noreply.github.com",
             },
         })
-        self.fresh_approval(issue)
+        self.fresh_submission(issue)
         current = self.github.api(self.prefix + "/git/ref/heads/main")["object"]["sha"]
-        require(current == base, "registry changed while admission was running; apply the approval label again")
+        require(current == base, "registry changed while registration was running; retry")
         self.github.api(self.prefix + "/git/refs/heads/main", "PATCH", {
             "sha": commit["sha"], "force": False,
         })
@@ -153,7 +175,7 @@ class Marketplace:
             {"ref": "main"},
         )
 
-    def intake(self, issue, approve=False):
+    def intake(self, issue):
         if issue.get("pull_request") or issue["state"] != "open":
             return
         number = issue["number"]
@@ -167,7 +189,7 @@ class Marketplace:
             fresh = self.github.api(f"{self.prefix}/issues/{number}")
             if fresh.get("body") != issue.get("body") or fresh["state"] != "open":
                 return
-            commit = self.apply(product, issue, kind) if approve else False
+            commit = self.apply(product, issue, kind)
         except GitHubError as error:
             if error.status != 404:
                 raise
@@ -179,26 +201,15 @@ class Marketplace:
             self.comment(number, "Application needs attention / 请修正提交资料：\n\n" + str(error))
             return
         hosts = ["host:" + target["host"] for target in product["targets"]]
-        if approve:
-            self.status(number, "status:accepted", [application_label, *hosts])
-            if commit is None:
-                message = "The submitted product record is already current. / 当前产品登记已与提交资料一致。"
-            else:
-                url = f"https://github.com/{self.repository}/commit/{commit['sha']}"
-                message = (
-                    "Maintainer approval applied this record directly from the reviewed Issue. "
-                    f"/ 管理员已通过当前 Issue 完成登记：{url}"
-                )
-            self.comment(number, message)
-            self.github.api(f"{self.prefix}/issues/{number}", "PATCH", {"state": "closed", "state_reason": "completed"})
-            return commit
+        self.status(number, REGISTERED, [application_label, *hosts])
+        if commit is None:
+            message = "The submitted product record is already current. / 当前产品登记已与提交资料一致。"
         else:
-            self.status(number, "status:in-review", [application_label, *hosts])
-            self.comment(number, (
-                "Metadata validated. A maintainer must review publisher ownership, package signatures, "
-                "capability ceilings, and real host evidence, then apply `status:accepted`. "
-                "/ 元数据校验通过；管理员完成归属、签名、能力边界和真实宿主证据审核后，请添加 `status:accepted`。"
-            ))
+            url = f"https://github.com/{self.repository}/commit/{commit['sha']}"
+            message = f"Metadata checks passed; automatically registered. / 元数据校验通过，已自动登记：{url}"
+        self.comment(number, message)
+        self.github.api(f"{self.prefix}/issues/{number}", "PATCH", {"state": "closed", "state_reason": "completed"})
+        return commit
 
     def close_application(self, issue):
         kind = application_kind(issue)
@@ -212,9 +223,12 @@ class Marketplace:
         })
 
     def reconcile(self):
+        changed = False
         for issue in self.github.pages(self.prefix + "/issues?state=open"):
             if is_submission(issue):
-                self.intake(issue)
+                changed = self.intake(issue) is not None or changed
+        if changed:
+            self.dispatch_publication()
 
 def main():
     github = GitHub()
@@ -228,18 +242,16 @@ def main():
         if not is_submission(issue):
             return
         if issue["state"] == "closed":
-            if ACCEPTED not in label_names(issue):
+            if REGISTERED not in label_names(issue) and "status:accepted" not in label_names(issue):
                 market.status(issue["number"], CLOSED)
         else:
             action = management_action(event)
             if action == CLOSED:
                 market.close_application(issue)
-            elif action == ACCEPTED:
-                commit = market.intake(issue, approve=True)
+            elif event.get("action") in {"opened", "edited", "reopened"}:
+                commit = market.intake(issue)
                 if commit is not None:
                     market.dispatch_publication()
-            else:
-                market.intake(issue)
     else:
         market.reconcile()
 

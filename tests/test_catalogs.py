@@ -55,7 +55,7 @@ class CatalogTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_transition(self.registry, {"schema_version": 3, "products": []})
 
-    def test_release_cannot_replace_key_or_exceed_registered_capabilities(self):
+    def test_release_preserves_identity_but_permissions_are_version_declarations(self):
         manifest = {
             "schema_version": 1,
             "product_id": self.product["id"],
@@ -84,7 +84,9 @@ class CatalogTest(unittest.TestCase):
             validate_release_manifest(bad, self.product)
         bad = copy.deepcopy(manifest)
         bad["release"]["targets"][0]["capabilities"].append("network.unreviewed")
-        with self.assertRaises(ValueError):
+        validate_release_manifest(bad, self.product)
+        bad["release"]["targets"][0]["package_id"] = "org.example.replacement"
+        with self.assertRaisesRegex(ValueError, "not registered"):
             validate_release_manifest(bad, self.product)
 
 

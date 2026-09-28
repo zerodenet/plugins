@@ -2,10 +2,16 @@
 
 **English** · [简体中文](AGENTS.zh-CN.md)
 
-Read README.md, CONTRIBUTING.md, and docs/governance.md before editing. This repository is a curated admission and discovery service with one maintained branch, main. `catalogs/plugins.json` is the only hand-maintained product registry; per-host catalogs are generated compatibility projections. Plugin source, release history, packages, compatibility metadata, and release notes belong to independent publisher repositories.
+Read README.md, CONTRIBUTING.md, and docs/governance.md before editing. This repository is a centralized registration and discovery service with one maintained branch, main. `catalogs/plugins.json` is the only maintained product registry; per-host catalogs are generated compatibility projections. Plugin source, releases, packages, compatibility metadata, and release notes belong to publisher repositories.
 
-Preserve plugin IDs and existing listings. Directory entries contain only stable identity, publisher key, registered basic information and release-source pointers, host scope, and reviewed capability/UI ceilings. Never add routine Stable, RC, or Dev release records here, execute submitted packages, or invent publisher evidence. Repository/key changes, source-contract changes, capability expansion, and withdrawals require focused review.
+Preserve product and host/package identities and existing listings. Directory capability and UI arrays are descriptive metadata, never approved ceilings. Do not require marketplace approval for registration, permission changes, UI changes, or routine releases. Automatically check source ownership, structure, identity, tag/source consistency, asset location, size and digest. Do not execute submitted packages or invent publisher evidence. Preserve source control checks for repository/key changes and explicit withdrawal handling.
 
-Hosts own online release discovery, channel/version selection, verification, installation, upgrade, downgrade, removal, local state, and audit. Offline import remains a separate administrator-trust path.
+Hosts own package signature verification, API/platform compatibility, installation, permission display and user confirmation, runtime authorization, lifecycle, local state, and audit. Collection is not a security endorsement or permission grant. Offline import remains a separate host trust path.
 
-Run python3 -m unittest discover -s tests, python3 scripts/validate.py, pnpm test:static-api, pnpm build, and git diff --check. Maintain English and Chinese guides together and keep generated snapshots, site output, packages, and secrets untracked.
+Run the validation commands below. Maintain English and Chinese references together and keep generated snapshots, site output, packages, and secrets untracked.
+
+    python3 -m unittest discover -s tests
+    python3 scripts/validate.py
+    pnpm test:static-api
+    pnpm build
+    git diff --check

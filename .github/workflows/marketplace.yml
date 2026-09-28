@@ -19,7 +19,7 @@ jobs:
       contents: write
       issues: write
     steps:
-      # Privileged events always run reviewed default-branch code, never a
+      # Privileged events always run default-branch code, never a
       # contributor checkout or anything extracted from a plugin package.
       - uses: actions/checkout@v4
         with:
@@ -30,7 +30,7 @@ jobs:
           python-version: '3.12'
       - run: python3 -m unittest discover -s tests
       - run: python3 scripts/validate.py
-      - name: Validate applications and apply maintainer label decisions
+      - name: Validate metadata and automatically register publisher records
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/marketplace_sync.py

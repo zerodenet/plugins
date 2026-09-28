@@ -2,11 +2,14 @@
 
 **English** · [简体中文](marketplace-implementation-plan.zh-CN.md)
 
+
+Current contract (2026-09-28): the marketplace only registers and discovers plugins. Technical validation automatically records listings without maintainer approval. Capability/UI declarations are descriptive; hosts own user confirmation and authorization. The historical label-review workflow below is superseded.
+
 Status: in progress. Use Astro and a pinned Minted Directory Astro baseline, with information hierarchy informed by Ever Works. Existing host catalogs remain generated compatibility projections until migration acceptance.
 
 ## Scope and contracts
 
-One marketplace serves website discovery and fixed host/channel API paths for ZBoard and ZNet Sink. Central registration owns stable product identity, trusted publisher source, host package identities and reviewed ceilings. Publisher repositories own generated multi-target release manifests. A derived snapshot joins validated data for the site and API; it never replaces host-side package verification, authorization, lifecycle, rollback, or installed data.
+One marketplace serves website discovery and fixed host/channel API paths for ZBoard and ZNet Sink. Central registration owns stable product identity, trusted publisher source, host package identities and descriptive declarations. Publisher repositories own generated multi-target release manifests. A derived snapshot joins validated data for the site and API; it never replaces host-side package verification, authorization, lifecycle, rollback, or installed data.
 
 `/api/plugins.json` publishes the complete discovery snapshot, while `/api/plugins/{host}/{channel}.json` publishes build-time host/channel projections. Each host filters host version, operating system, and architecture locally and never substitutes another host or incompatible artifact. Source-only products remain web-discoverable but absent from host channel files; last-known-good release data survives temporary upstream failure while withdrawal wins immediately.
 

@@ -48,42 +48,35 @@ class IssueScopeTest(unittest.TestCase):
                 market.intake.assert_not_called()
                 market.status.assert_not_called()
 
-    def test_human_accepted_label_is_the_only_approval_trigger(self):
+    def test_valid_submissions_register_without_a_maintainer_label(self):
         issue = {
             'number': 7, 'title': '[Plugin] example', 'body': 'body', 'state': 'open',
-            'labels': [{'name': 'plugin:submission'}, {'name': 'status:accepted'}],
+            'labels': [{'name': 'plugin:submission'}],
         }
-        event = {
-            'action': 'labeled', 'issue': {'number': 7},
-            'label': {'name': 'status:accepted'}, 'sender': {'type': 'User'},
-        }
-        market = self.run_issue_event(event, issue, {'sha': 'c' * 40})
-        market.intake.assert_called_once_with(issue, approve=True)
-        market.dispatch_publication.assert_called_once_with()
-
-        event['sender']['type'] = 'Bot'
-        market = self.run_issue_event(event, issue)
-        market.intake.assert_called_once_with(issue)
-        market.dispatch_publication.assert_not_called()
-
-        event['sender']['type'] = 'User'
-        event['action'] = 'edited'
-        market = self.run_issue_event(event, issue)
-        market.intake.assert_called_once_with(issue)
-        market.dispatch_publication.assert_not_called()
+        for action in ('opened', 'edited', 'reopened'):
+            with self.subTest(action=action):
+                event = {'action': action, 'issue': {'number': 7}, 'sender': {'type': 'User'}}
+                market = self.run_issue_event(event, issue, {'sha': 'c' * 40})
+                market.intake.assert_called_once_with(issue)
+                market.dispatch_publication.assert_called_once_with()
 
     def test_current_record_does_not_dispatch_another_publication(self):
         issue = {
             'number': 7, 'title': '[Plugin] example', 'body': 'body', 'state': 'open',
-            'labels': [{'name': 'plugin:submission'}, {'name': 'status:accepted'}],
+            'labels': [{'name': 'plugin:submission'}],
         }
-        event = {
-            'action': 'labeled', 'issue': {'number': 7},
-            'label': {'name': 'status:accepted'}, 'sender': {'type': 'User'},
-        }
-        market = self.run_issue_event(event, issue)
-        market.intake.assert_called_once_with(issue, approve=True)
+        market = self.run_issue_event({'action': 'edited', 'issue': {'number': 7}}, issue)
+        market.intake.assert_called_once_with(issue)
         market.dispatch_publication.assert_not_called()
+
+    def test_automation_labels_do_not_start_recursive_registration(self):
+        issue = {'number': 7, 'title': '[Plugin] example', 'state': 'open', 'labels': []}
+        for label in ('status:registered', 'status:accepted', 'status:needs-info'):
+            event = {'action': 'labeled', 'issue': {'number': 7},
+                     'label': {'name': label}, 'sender': {'type': 'Bot'}}
+            market = self.run_issue_event(event, issue)
+            market.intake.assert_not_called()
+            market.dispatch_publication.assert_not_called()
 
     def test_human_closed_label_closes_without_intake(self):
         issue = {

@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import sys
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -112,23 +112,63 @@ class SyncTest(unittest.TestCase):
         registry = append_product({"schema_version": 3, "products": []}, product)
         self.assertEqual(len(registry["products"][0]["targets"]), 2)
 
-    def test_onboarding_rejects_unreviewable_release_or_trust_changes(self):
+    def test_listing_rejects_unpublished_or_inconsistent_artifacts(self):
         for mutate in (
             lambda api: setattr(api, "draft", True),
             lambda api: setattr(api, "prerelease", True),
             lambda api: setattr(api, "commit", "f" * 40),
             lambda api: api.metadata.update(digest="sha256:" + "f" * 64),
             lambda api: api.assets[1].update(size=11),
-            lambda api: api.document["publisher"].update(public_key="eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg="),
-            lambda api: api.document["release"]["targets"][0]["capabilities"].append("network.unreviewed"),
         ):
             with self.subTest(mutate=mutate):
                 api = ReleaseAPI()
                 mutate(api)
-                if mutate.__code__.co_firstlineno >= 0:
-                    api.raw = json.dumps(api.document).encode()
                 with self.assertRaises((ValueError, KeyError)):
                     listing_product(api, api.repository, api.tag)
+
+    def test_registration_can_use_a_public_dev_release(self):
+        api = ReleaseAPI()
+        api.tag = "v1.0.1-dev.1"
+        api.prerelease = True
+        api.document["source"]["tag"] = api.tag
+        api.document["release"].update(version="1.0.1-dev.1", channel="dev")
+        api.artifact["url"] = f"https://github.com/{api.repository}/releases/download/{api.tag}/plugin.zspkg"
+        api.refresh()
+        self.assertEqual(listing_product(api, api.repository, api.tag), api.product)
+
+    def test_intake_registers_and_closes_without_a_decision_label(self):
+        product = ReleaseAPI().product
+        issue = {"number": 7, "title": "[Plugin] example", "body": "metadata", "state": "open",
+                 "labels": [{"name": "plugin:submission"}], "user": {"login": "example"}}
+        github = Mock()
+        github.api.return_value = issue
+        market = Marketplace(github, "example/market")
+        with patch("marketplace_sync.submission", return_value=("example/plugin", "v1.0.0")), \
+             patch("marketplace_sync.listing_product", return_value=product), \
+             patch.object(market, "apply", return_value={"sha": "c" * 40}) as apply, \
+             patch.object(market, "status") as status, patch.object(market, "comment"):
+            self.assertEqual(market.intake(issue), {"sha": "c" * 40})
+            apply.assert_called_once_with(product, issue, "submission")
+            self.assertEqual(status.call_args.args[1], "status:registered")
+        github.api.assert_any_call("/repos/example/market/issues/7", "PATCH",
+                                   {"state": "closed", "state_reason": "completed"})
+
+    def test_record_source_transfer_requires_control_of_both_repositories(self):
+        product = ReleaseAPI().product
+        issue = {"number": 7, "title": "[Plugin update] example", "body": "metadata", "state": "open",
+                 "labels": [], "user": {"login": "outsider"}}
+        github = AdmissionGitHub(product, issue)
+        old = copy.deepcopy(product)
+        old["repository"] = "https://github.com/original/plugin"
+        github.registry["products"] = [old]
+        market = Marketplace(github, "example/market")
+        with patch.object(market, "publisher_control") as control:
+            control.side_effect = [None, ValueError("old source not controlled")]
+            with self.assertRaisesRegex(ValueError, "old source"):
+                market.apply(product, issue, "update")
+            self.assertEqual([call.args[0] for call in control.call_args_list],
+                             [product["repository"], old["repository"]])
+        self.assertFalse(github.blobs)
 
     def test_submission_requires_one_immutable_release_manifest(self):
         url = "https://github.com/example/bridge-plugin/releases/download/v1.0.0/marketplace-entry.json"
@@ -149,7 +189,7 @@ class SyncTest(unittest.TestCase):
             changed_identity["targets"][0]["package_id"] = "org.example.replacement"
             replace_product(registry, changed_identity)
 
-    def test_workflow_uses_reviewed_default_branch_code(self):
+    def test_workflow_uses_default_branch_code(self):
         workflow = (ROOT / ".github/workflows/marketplace.yml").read_text()
         self.assertIn("ref: main", workflow)
         self.assertIn("persist-credentials: false", workflow)
@@ -164,26 +204,42 @@ class SyncTest(unittest.TestCase):
         self.assertEqual(application_kind(update), "update")
         self.assertIsNone(application_kind({"title": "Question", "labels": []}))
 
-    def test_only_human_decision_label_events_request_management_actions(self):
+    def test_only_human_closure_events_request_management_actions(self):
         event = {"action": "labeled", "label": {"name": "status:accepted"},
                  "sender": {"type": "User"}}
-        self.assertEqual(management_action(event), "status:accepted")
+        self.assertIsNone(management_action(event))
         event["label"]["name"] = "status:closed"
         self.assertEqual(management_action(event), "status:closed")
         event["sender"]["type"] = "Bot"
         self.assertIsNone(management_action(event))
-        event["sender"]["type"] = "User"
-        event["action"] = "edited"
-        self.assertIsNone(management_action(event))
 
-    def test_approval_atomically_commits_registry_and_both_host_projections(self):
+    def test_submitter_must_control_source_without_manual_review(self):
+        github = Mock()
+        market = Marketplace(github, "example/market")
+        market.publisher_control("https://github.com/example/plugin", {"user": {"login": "example"}})
+        github.api.assert_not_called()
+        github.api.return_value = {"permission": "read"}
+        with self.assertRaisesRegex(ValueError, "does not control"):
+            market.publisher_control("https://github.com/example/plugin", {"user": {"login": "outsider"}})
+        github.api.return_value = {"permission": "write"}
+        market.publisher_control("https://github.com/example/plugin", {"user": {"login": "maintainer"}})
+
+    def test_edited_issue_cannot_be_applied_from_a_stale_read(self):
+        github = Mock()
+        issue = {"number": 7, "body": "original", "state": "open", "title": "[Plugin] x", "labels": []}
+        github.api.return_value = {**issue, "body": "changed"}
+        with self.assertRaisesRegex(ValueError, "submission changed"):
+            Marketplace(github, "example/market").fresh_submission(issue)
+
+    def test_registration_atomically_commits_without_approval(self):
         product = json.loads((ROOT / "templates/product-registration.json").read_text())
         issue = {
             "number": 7,
             "title": "[Plugin] example",
-            "body": "reviewed body",
+            "body": "publisher body",
+            "user": {"login": "example"},
             "state": "open",
-            "labels": [{"name": "plugin:submission"}, {"name": "status:accepted"}],
+            "labels": [{"name": "plugin:submission"}],
         }
         github = AdmissionGitHub(product, issue)
         commit = Marketplace(github, "example/market").apply(product, issue, "submission")

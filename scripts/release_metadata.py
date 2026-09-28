@@ -22,8 +22,8 @@ def submission(body):
 
 def listing_product(github, repository, tag):
     release = github.api(f"/repos/{repository}/releases/tags/{segment(tag)}")
-    require(not release["draft"] and not release["prerelease"] and release["tag_name"] == tag and "-" not in tag,
-            "marketplace listing changes require one published stable release")
+    require(not release["draft"] and release["tag_name"] == tag,
+            "marketplace listing requires one public release")
     assets = list(github.pages(f"/repos/{repository}/releases/{release['id']}/assets"))
     records = [asset for asset in assets if asset["name"] == "marketplace-entry.json"]
     require(len(records) == 1, "listing release needs one marketplace-entry.json asset")
@@ -39,8 +39,9 @@ def listing_product(github, repository, tag):
     product = document["listing"]
     validate_product(product)
     require(product["repository"] == f"https://github.com/{repository}", "listing belongs to another repository")
-    require(document["source"]["tag"] == tag and document["release"]["channel"] == "stable",
-            "listing release must be stable and match its tag")
+    expected_channel = "rc" if "-rc" in tag.lower() else "dev" if "-" in tag or release["prerelease"] else "stable"
+    require(document["source"]["tag"] == tag and document["release"]["channel"] == expected_channel,
+            "listing release channel must match its tag")
     ref = github.api(f"/repos/{repository}/git/ref/tags/{segment(tag)}")["object"]
     for _ in range(4):
         if ref["type"] != "tag":
@@ -67,7 +68,7 @@ def append_product(registry, product):
         result["products"].append(copy.deepcopy(product))
     else:
         require(old == product,
-                "product already exists; trust, source, target, or capability changes need the marketplace update form")
+                "product already exists; record changes need the marketplace update form")
     validate_registry(result)
     return result
 
@@ -77,7 +78,7 @@ def replace_product(registry, product):
     validate_product(product)
     result = copy.deepcopy(registry)
     matches = [index for index, item in enumerate(result["products"]) if item["id"] == product["id"]]
-    require(len(matches) == 1, "product is not registered; use the first-time admission template")
+    require(len(matches) == 1, "product is not registered; use the first-time registration template")
     result["products"][matches[0]] = copy.deepcopy(product)
     validate_transition(registry, result)
     return result

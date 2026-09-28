@@ -10,7 +10,6 @@ HOSTS = {"zboard", "znet-sink"}
 CHANNELS = {"stable", "rc", "dev"}
 OPERATING_SYSTEMS = {"any", "linux", "darwin", "windows", "android", "ios"}
 ARCHITECTURES = {"any", "amd64", "arm64"}
-SURFACES = {"zboard": {"admin", "public", "account"}, "znet-sink": set()}
 ID = re.compile(r"[a-z0-9][a-z0-9._-]{1,159}")
 SEMVER = re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?")
 COMMIT = re.compile(r"[a-f0-9]{40}")
@@ -72,8 +71,8 @@ def validate_target(value):
     fields(value, ("host", "package_id", "surfaces", "capabilities"))
     host = value["host"]
     require(host in HOSTS and ID.fullmatch(value["package_id"]), "invalid host or package identity")
-    require(strings(value["surfaces"], 80) and set(value["surfaces"]) <= SURFACES[host],
-            "invalid UI surface ceiling")
+    require(strings(value["surfaces"], 80) and all(ID.fullmatch(item) for item in value["surfaces"]),
+            "invalid UI surface declaration")
     require(strings(value["capabilities"], 160), "capabilities must be a unique string array")
     require(all(ID.fullmatch(capability) and (host == "zboard") == capability.startswith("zboard.")
                 for capability in value["capabilities"]), "capability belongs to another host or is invalid")
@@ -181,7 +180,7 @@ def validate_release_manifest(value, product=None):
         require(SEMVER.fullmatch(target["host_version"]["min"]), "invalid minimum host version")
         if "max_exclusive" in target["host_version"]:
             require(SEMVER.fullmatch(target["host_version"]["max_exclusive"]), "invalid maximum host version")
-        require(strings(target["surfaces"], 80) and set(target["surfaces"]) <= SURFACES[host], "invalid release surfaces")
+        require(strings(target["surfaces"], 80) and all(ID.fullmatch(item) for item in target["surfaces"]), "invalid release surfaces")
         require(strings(target["capabilities"], 160)
                 and all(ID.fullmatch(item) and (host == "zboard") == item.startswith("zboard.")
                         for item in target["capabilities"]),
@@ -197,9 +196,6 @@ def validate_release_manifest(value, product=None):
         if product:
             require(host in registration and registration[host]["package_id"] == target["package_id"],
                     "release target is not registered")
-            require(set(target["surfaces"]) <= set(registration[host]["surfaces"]), "release exceeds surface ceiling")
-            require(set(target["capabilities"]) <= set(registration[host]["capabilities"]),
-                    "release exceeds capability ceiling")
     if product:
         require(value["product_id"] == product["id"] and value["repository"] == product["repository"]
                 and value["publisher"] == product["publisher"], "release trust identity differs from registration")

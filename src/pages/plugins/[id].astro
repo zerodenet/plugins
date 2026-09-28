@@ -71,11 +71,12 @@ const dateLabel = (value: string) => new Intl.DateTimeFormat('zh-CN', {
 
       <section id="permissions">
         <p class="eyebrow">页面与能力</p>
-        <h2>已登记边界</h2>
+        <h2>版本申请权限</h2>
+        <p>展示当前推荐版本的声明；安装与更新时由宿主展示权限并请求确认。</p>
         {product.targets.map((target) => <div class="boundary">
           <strong><code>{target.host}</code></strong>
-          <div class="permission-group"><span>页面范围</span><ul>{target.surfaces.map((surface) => <li>{surfaceDescription(target.host, surface) && <span>{surfaceDescription(target.host, surface)}</span>}<code>{surface}</code></li>)}</ul></div>
-          <div class="permission-group"><span>申请能力</span><ul>{target.capabilities.map((capability) => <li>{capabilityDescription(target.host, capability) && <span>{capabilityDescription(target.host, capability)}</span>}<code>{capability}</code></li>)}</ul></div>
+          <div class="permission-group"><span>页面范围</span><ul>{(latest(target)?.surfaces || target.surfaces).map((surface) => <li>{surfaceDescription(target.host, surface) && <span>{surfaceDescription(target.host, surface)}</span>}<code>{surface}</code></li>)}</ul></div>
+          <div class="permission-group"><span>申请能力</span><ul>{(latest(target)?.capabilities || target.capabilities).map((capability) => <li>{capabilityDescription(target.host, capability) && <span>{capabilityDescription(target.host, capability)}</span>}<code>{capability}</code></li>)}</ul></div>
         </div>)}
       </section>
 

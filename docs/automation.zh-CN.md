@@ -2,16 +2,16 @@
 
 [English](automation.md) · **简体中文**
 
-入驻与公开发布由两条独立流程负责。
+## 自动登记
 
-`marketplace.yml` 处理首次入驻和已登记资料更新。它只运行已审核的 `main` 代码，校验一个正式 `marketplace-entry.json`、GitHub 标签/源码与产物记录，并把申请 Issue 标记为 `status:in-review`。管理员在同一个 Issue 内审核发布者/密钥归属、包签名、每个宿主目标与能力上限，以及真实运行证据。添加 `status:accepted` 就是批准决定：Action 会重新校验固定发行，并用一次原子提交把原样 `listing` 和两个自动生成的宿主兼容投影一起写入 `main`，随后显式触发 Pages 发布工作流。这里使用 `workflow_dispatch`，避免自动化提交所用的 `GITHUB_TOKEN` 抑制后续 `push` 工作流。添加 `status:closed` 则关闭申请且不予收录。入驻流程不再创建独立分支或 PR。名称、简介、分类、链接及其他产品字段不经过翻译、改写或缺省推断，流程也绝不执行投稿包。
+`marketplace.yml` 使用默认分支代码处理首次登记和资料更新。发布者 Issue 创建、编辑或重新打开后自动校验、登记；推送/手动校准会重试未关闭的提交。不存在 `status:accepted` 批准门槛或权限审核。
 
-GitHub 只允许具备相应仓库角色的协作者管理标签；工作流仅把真人触发的两个决定标签视为管理操作。编辑、重新打开、机器人标签、推送和手动校准都只能重新验证，不能批准。Issue 正文发生变化后，批准标签会被移除，必须由管理员重新审核并再次添加。写入前还会确认 Issue 与 `main` 均未发生变化，并发冲突会关闭写入而不是覆盖。
+自动化检查公开固定发行清单、提交者来源控制权、标签/源码身份、资产位置、大小和摘要，支持正式版、RC 与 Dev。原样复制 `listing`，原子提交唯一登记和两个宿主投影，标记 `status:registered`、关闭 Issue，并显式触发发布，避免 `GITHUB_TOKEN` 提交抑制后续 push 工作流。错误/不可用资料标记 `status:needs-info`。协作者仍可用 `status:closed` 关闭无效提交；普通自动标签不会递归触发登记。
 
-`publish-marketplace.yml` 在注册/网站变化、每三小时或人工触发时运行。它校验注册表，在构建期有界读取作者发行，作者仓库暂时失败时复用该产品上次有效数据，再从同一快照分别构建 GitHub Pages 仓库路径版本和 Cloudflare Pages 根路径版本。网站、市场快照、API 和 schema 保持同一次运行、同一快照版本。
+提交前检查 Issue 正文/作者/类型及 main 未发生变化。迁移仓库自动核实对新旧来源的控制权。不执行安装包。来源控制校验用于防止冒用身份，不审核插件用途、权限或运行行为。
 
-Cloudflare Direct Upload 使用组织级 `CLOUDFLARE_ACCOUNT_ID` 与 `CLOUDFLARE_API_TOKEN`。项目名公开固定为 `zero-plugins`；工作流优先读取 `CLOUDFLARE_PLUGINS_PROJECT` Secret 或 Variable，并在未配置时使用该固定值。Token 只需目标账号的 Cloudflare Pages 编辑权限。GitHub Pages 继续发布 `/plugins/` 路径，作为独立备用地址。
+## 发布
 
-正式域名 `plugins.zerodenet.org` 绑定到 Cloudflare Pages 项目，宿主读取 `/api/plugins/{host}/{channel}.json`，再在本地按版本与平台筛选；既有 schema-v2 地址仅作迁移期只读回退。未来若引入 Worker，它是可选增强，不是静态市场可用性的前置条件。
+`publish-marketplace.yml` 在相关 main 变更、每三小时或手动运行时取得有界发行元数据；来源故障保留上次可用信息，同一快照分别构建 GitHub Pages 和 Cloudflare Pages。权限和界面扩大不会过滤版本，宿主独立校验和授权所选安装包。
 
-GitHub 凭据只存在于构建任务；访客浏览不会逐个请求作者仓库。入驻提交只会在 Issue 标签审核决定后产生，普通市场发布仍由另一条工作流负责。显式撤回仍先于陈旧缓存处理。
+Cloudflare Direct Upload 使用 `CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_PLUGINS_PROJECT`（默认 `zero-plugins`）。生产域名为 `plugins.zerodenet.org`，GitHub Pages 保留 `/plugins/` 备用路径。宿主请求 `/api/plugins/{host}/{channel}.json` 并本地筛选平台/版本。凭据只存在于 CI，访客请求不逐个访问来源仓库。显式撤回优先于陈旧缓存。

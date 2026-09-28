@@ -2,11 +2,14 @@
 
 **English** · [简体中文](marketplace-design.zh-CN.md)
 
+
+Current contract (2026-09-28): the marketplace only registers and discovers plugins. Technical validation automatically records listings without maintainer approval. Capability/UI declarations are descriptive; hosts own user confirmation and authorization. The historical label-review workflow below is superseded.
+
 Users discover one plugin product. Products explicitly declare one or more host targets; the market never guesses a host from IP, Referer, or User-Agent.
 
 | Layer | Owner | Durable content |
 | --- | --- | --- |
-| Product registration | Central marketplace | Product ID, verbatim publisher metadata, repository, trusted publisher, release source, host/package identities, reviewed ceilings, withdrawal |
+| Product registration | Central marketplace | Product ID, verbatim publisher metadata, repository, trusted publisher, release source, host/package identities, descriptive declarations, withdrawal |
 | Release manifest | Publisher repository | Version/channel, source commit, target packages, host/platform compatibility, size, digest, signature, release notes |
 | Build snapshot | Marketplace build | Publisher release history for the site, validated releases for hosts, freshness, snapshot version |
 | Installation lifecycle | Each host | Final download, signature/policy verification, authorization, install, upgrade, rollback, disable, uninstall, audit |

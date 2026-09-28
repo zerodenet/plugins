@@ -22,8 +22,8 @@
       "properties": {
         "host": { "enum": ["zboard", "znet-sink"] },
         "package_id": { "$ref": "#/$defs/id" },
-        "surfaces": { "type": "array", "uniqueItems": true, "items": { "type": "string", "maxLength": 80 } },
-        "capabilities": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+        "surfaces": { "description": "Publisher declarations, not market approval or host permission grants.", "type": "array", "uniqueItems": true, "items": { "type": "string", "maxLength": 80 } },
+        "capabilities": { "description": "Descriptive metadata; release permission changes require no marketplace review.", "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
       }
     },
     "product": {

@@ -8,7 +8,7 @@ This document defines the integration boundary for ZeroDeNet plugins. Project ma
 
 | Component | Owns |
 | --- | --- |
-| Marketplace | Admission, discovery, publisher identity, release-source registration, and capability ceilings |
+| Marketplace | Registration, discovery, source identity and release metadata; no permission review |
 | Host plugin manager | Release discovery, channel/version selection, package verification, runtime instances, configuration, private storage, and lifecycle operations |
 | Host core services | Business records, authorization policy, and committed business transactions |
 | Plugin | Integration logic and contributed UI through declared host APIs |
@@ -40,7 +40,7 @@ ZBoard currently provides encrypted JSON private storage and declarative migrati
 
 ## Trust and isolation
 
-The official admitted directory supplies a plugin-scoped publisher key and policy ceiling. Package signatures establish artifact provenance and integrity. Hosts verify both directory origin and the selected package, and reject validly signed packages that exceed the admitted boundary. Offline imports from unknown publishers still require explicit administrator trust.
+The directory supplies registered source identity and publisher key, not permission grants. Package signatures establish provenance and integrity. Hosts verify directory origin and selected packages, display permissions, obtain user confirmation, and enforce API, identity and resource scope. Marketplace inclusion is not a safety endorsement; expanded declarations require no market approval. Offline imports use the host trust workflow.
 
 ZBoard's current native service components run as trusted code in separate processes. The host does not provide an OS sandbox for arbitrary third-party binaries. Each future host must define its own runtime, system permission, and resource-isolation model.
 

@@ -1,10 +1,9 @@
 [
-  {"name":"plugin:submission","color":"5319E7","description":"Plugin marketplace admission / 插件市场入驻申请"},
+  {"name":"plugin:submission","color":"5319E7","description":"Plugin marketplace registration / 插件市场登记"},
   {"name":"plugin:update","color":"0969DA","description":"Publisher-submitted marketplace record update / 发布者提交的市场资料更新"},
   {"name":"host:zboard","color":"0052CC","description":"ZBoard plugin / 面板插件"},
   {"name":"host:znet-sink","color":"0E8A16","description":"ZNet Sink plugin / 客户端插件"},
   {"name":"status:needs-info","color":"D93F0B","description":"Metadata needs correction / 需要补充或修正元数据"},
-  {"name":"status:in-review","color":"FBCA04","description":"Validated metadata awaiting maintainer decision / 元数据已验证，等待管理员决定"},
-  {"name":"status:accepted","color":"0E8A16","description":"Maintainer approval trigger and admitted result / 管理员批准触发与已收录状态"},
-  {"name":"status:closed","color":"BFD4F2","description":"Maintainer closure trigger without admission / 管理员关闭触发，且不收录"}
+  {"name":"status:closed","color":"BFD4F2","description":"Maintainer closure trigger without admission / 管理员关闭触发，且不收录"},
+  {"name":"status:registered","color":"0E8A16","description":"Automatically registered after metadata checks / 元数据校验后已自动登记"}
 ]

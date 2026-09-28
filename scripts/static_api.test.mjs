@@ -64,3 +64,18 @@ test('host version text includes only compatibility bounds supplied by the publi
     '≥ 0.0.2 且 < 0.1.0',
   );
 });
+
+
+test('permission expansion remains in host API without granting another release its permissions', () => {
+  const data = structuredClone(snapshot);
+  const target = data.products[0].targets[0];
+  target.surfaces = ['admin'];
+  target.capabilities = ['zboard.config.v1', 'zboard.account.self.read.v1'];
+  target.releases[0].capabilities = ['zboard.config.v1'];
+  target.releases[1].capabilities = ['zboard.config.v1', 'zboard.account.self.read.v1'];
+  const dev = buildStaticPage(data, 'zboard', 'dev').items[0].targets[0];
+  assert.deepEqual(dev.releases[0].capabilities, target.releases[1].capabilities);
+  assert.ok(dev.releases[0].capabilities.every((value) => dev.capabilities.includes(value)));
+  const stable = buildStaticPage(data, 'zboard', 'stable').items[0].targets[0];
+  assert.deepEqual(stable.releases[0].capabilities, ['zboard.config.v1']);
+});

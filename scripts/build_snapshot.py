@@ -12,7 +12,7 @@ import re
 from urllib.parse import quote, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from marketplace_schema import CHANNELS, HOSTS, validate_registry, validate_release_manifest
+from marketplace_schema import CHANNELS, HOSTS, validate_target, validate_registry, validate_release_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_API_BYTES = 4 * 1024 * 1024
@@ -165,9 +165,8 @@ def normalize_legacy(product, document, github_release):
     registration = next((item for item in product["targets"] if item["host"] == host), None)
     if registration is None or document.get("id") != registration["package_id"]:
         raise ValueError("legacy release target is not registered")
-    if not set(record.get("surfaces", [])) <= set(registration["surfaces"]) \
-            or not set(record.get("capabilities", [])) <= set(registration["capabilities"]):
-        raise ValueError("legacy release exceeds its registered boundary")
+    validate_target({"host": host, "package_id": registration["package_id"],
+                     "surfaces": record.get("surfaces", []), "capabilities": record.get("capabilities", [])})
     artifacts = []
     for artifact in record.get("artifacts", []):
         operating_system, architecture = split_platform(artifact["platform"])
@@ -314,6 +313,14 @@ def build(registry, client, fixture_data=None, previous=None, generated_at=None)
             else:
                 products.append(base_product(product))
                 stale.append(product["id"])
+    # Compatibility fields describe all discoverable releases, never market grants.
+    # Older hosts compare releases with these arrays, so stale registration values
+    # must not become a second permission gate. Hosts still authorize each package.
+    for product in products:
+        for target in product["targets"]:
+            for field in ("surfaces", "capabilities"):
+                target[field] = sorted(set(target[field]).union(
+                    *(set(release[field]) for release in target["releases"])))
     products.sort(key=lambda item: item["id"])
     content_hash = hashlib.sha256(json.dumps(products, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     return {

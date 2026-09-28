@@ -2,28 +2,22 @@
 
 **English** · [简体中文](CONTRIBUTING.zh-CN.md)
 
-Contributions include new plugin admissions, listing corrections, trust-boundary changes, release-source adapters, and repository-level implementation documentation. Plugin implementation and release changes belong in the plugin's own repository; public user and publisher guidance belongs in the [ZeroDeNet documentation site](https://github.com/zerodenet/docs).
+## Registration and updates
 
-## Admission
+Use the [registration form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or [record-update form](https://github.com/zerodenet/plugins/issues/new?template=update-plugin.yml). Submit a public immutable `marketplace-entry.json` containing the exact complete listing. Stable, RC and Dev releases are supported. Automation checks source ownership, structure, identities, tag/source and asset size/digest, then atomically commits the verbatim registry and generated host projections. No maintainer approval or capability review is required.
 
-Use the [application form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml). Do not edit `catalogs/plugins.json` or open an admission PR. Provide one stable product identity and only the host targets actually supported. Each target has its own durable package ID and capability/UI ceilings. Include independently verifiable publisher/key ownership, one stable onboarding release, security maintenance, and actual host/platform evidence.
+The submitter must own the source repository or have automatically verifiable write permission. Updating a product uses its current source control; a repository transfer also requires control of the old source. Product and existing host/package IDs remain stable. Invalid or unavailable metadata receives `status:needs-info`; success receives `status:registered` and closes the Issue. Source-control checks prevent another publisher from replacing an existing identity.
 
-Automation verifies the generated onboarding manifest and marks the Issue in review. Maintainers review purpose, repository control, publisher identity, every host/package identity and maximum capability, migration and uninstall behavior, package signature, and real host evidence on that Issue. Applying `status:accepted` records approval and triggers the Action to commit the product entry and generated host projections directly; `status:closed` closes it without admission.
+## Releases and permissions
 
-## Later releases
+Publish versions, artifacts, compatibility declarations and release notes in the plugin repository. New permissions or UI declarations require no market record update or approval. The market checks their structure, preserves each release's declaration, and leaves support, user confirmation and authorization to the host. Collection does not certify safety.
 
-Do not add versions, artifacts, digests, compatibility declarations, or release notes to this repository. After admission, publishers release Stable, RC, and Dev versions in their own repositories. Hosts discover and enforce them against the admitted boundary.
-
-Use the marketplace record-update Issue for repository transfer, publisher/key rotation, release-source contract changes, another host, broader capabilities or UI surfaces, suspension, withdrawal, or registered basic-information changes. These changes require the same maintainer label decision. Routine releases require no directory update. Pull requests remain the contribution path for marketplace implementation and policy code, not plugin admission decisions.
+Implementation contributions use normal repository changes. Do not execute packages, track secrets, or rewrite publisher copy. Keep English and Chinese references aligned.
 
 ## Validation
-
-Run:
 
     python3 -m unittest discover -s tests
     python3 scripts/validate.py
     pnpm test:static-api
     pnpm build
     git diff --check
-
-CI checks the unified registry, generated host projections, package-manifest tooling, API behavior, site build, public keys, and durable identities. It never executes publisher packages. Keep repository-level English and Simplified Chinese references aligned; submit public documentation changes to the documentation site. Keep credentials, private keys, packages, generated snapshots, and workstation data out of Git.
