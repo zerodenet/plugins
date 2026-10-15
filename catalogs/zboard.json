@@ -74,7 +74,7 @@
       "description": "Provider-neutral payment channels with a TDCloud hosted cashier adapter.",
       "license": "MPL-2.0",
       "maintainers": [
-        "kovawx"
+        "zerodenet"
       ],
       "id": "zboard.payments",
       "surfaces": [
