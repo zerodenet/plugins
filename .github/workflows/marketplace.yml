@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
+      # Cross-repository source consent is read publicly; no admin credential is required.
       actions: write
       contents: write
       issues: write

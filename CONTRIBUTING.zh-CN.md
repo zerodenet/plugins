@@ -6,7 +6,9 @@
 
 使用[登记表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)或[资料更新表单](https://github.com/zerodenet/plugins/issues/new?template=update-plugin.yml)，提交公开固定发行中包含完整原始资料的 `marketplace-entry.json`。支持正式版、RC 和 Dev。自动化校验来源归属、结构、身份、标签/源码及资产大小/摘要后，原子提交原始登记与宿主兼容投影；不要求管理员批准或能力审核。
 
-提交者须为源码仓库所有者，或有可被自动核实的写权限。更新使用当前来源控制权；迁移仓库还须证明旧来源控制权。产品及已有宿主/包 ID 保持稳定。资料错误或不可用标记 `status:needs-info`；成功标记 `status:registered` 并关闭 Issue。来源控制校验防止其他发布者替换既有身份。
+提交者须为源码仓库所有者、有可自动核实的写权限，或提供源码仓库提交的精确请求授权。更新使用当前来源控制权；迁移仓库还须证明旧来源控制权。产品及已有宿主/包 ID 保持稳定。资料错误或不可用标记 `status:needs-info`；成功标记 `status:registered` 并关闭 Issue。来源控制校验防止其他发布者替换既有身份。
+
+协作者权限无法读取时，可由源码仓库提交绑定插件中心 Issue、数字作者 ID 和正文摘要的授权。详见[发布者源码控制权](docs/source-control.zh-CN.md)。源码方也可据此授权代为登记，无需授予仓库访问权限。
 
 ## 版本与权限
 

@@ -10,6 +10,9 @@ Automation checks the public immutable release listing, submitter repository con
 
 The Issue body/author/type and `main` must remain unchanged before commit. Repository transfers require automatically verified control of both sources. Packages are never executed. Source control validation is an identity check, not a plugin purpose, permission or runtime audit.
 
+
+Source ownership can also be proved by an exact Issue authorization on the publisher default branch when cross-repository collaborator APIs are unavailable. See [source control](source-control.md); a permission-query 403 is not classified as proof that the submitter lacks rights.
+
 ## Publication
 
 `publish-marketplace.yml` runs for relevant main changes, every three hours or manually. It obtains bounded publisher metadata, retains last usable data during upstream outages, and builds the same snapshot for GitHub Pages and Cloudflare Pages. Permission and UI expansion do not filter releases; hosts verify and authorize selected packages independently.

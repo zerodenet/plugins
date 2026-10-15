@@ -16,7 +16,7 @@ The production domain is `plugins.zerodenet.org`, served through Cloudflare Page
 
 1. Maintain a stable product/package identity, publisher signing identity, license and source repository.
 2. Publish signed packages and their immutable `marketplace-entry.json` in a public GitHub Release; Stable, RC and Dev are supported.
-3. Submit the [registration form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) from the source owner or a collaborator whose write permission can be verified by automation.
+3. Submit the [registration form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) from the source owner, a verifiable write collaborator, or an author with [source-controlled consent](docs/source-control.md) for the exact Issue.
 
 For names, links, repository/key changes, host/package registration or withdrawal, use the [record-update form](https://github.com/zerodenet/plugins/issues/new?template=update-plugin.yml). Source transfers require control of both repositories. Permission changes belong in each release and need no market approval. Ordinary releases require no directory update. Product copy is never translated, rewritten or inferred.
 

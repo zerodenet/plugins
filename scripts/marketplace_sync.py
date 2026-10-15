@@ -9,6 +9,7 @@ import re
 from github_api import GitHub, GitHubError, decode_json, segment
 from marketplace_schema import HOSTS, project_host, require
 from release_metadata import append_product, listing_product, replace_product, submission
+from source_authorization import AUTHORIZATION_PATH, authorized_by_source
 
 ROOT = Path(__file__).resolve().parents[1]
 STATES = {"status:needs-info", "status:in-review", "status:accepted", "status:registered", "status:closed"}
@@ -124,9 +125,17 @@ class Marketplace:
         except GitHubError as error:
             if error.status not in (403, 404):
                 raise
-            raise ValueError("submit from the source repository owner or a verifiable write collaborator") from error
-        require(permission.get("permission") in {"write", "maintain", "admin"},
-                "submitter does not control the publisher repository")
+            permission = {}
+        if permission.get("permission") in {"write", "maintain", "admin"}:
+            return
+        if authorized_by_source(self.github, source, self.repository, issue):
+            return
+        raise ValueError(
+            "Submitter does not control the publisher repository, or the workflow cannot read its "
+            "collaborator permissions. Publish an authorization for this exact Issue, numeric author ID "
+            "and body SHA-256 in " + AUTHORIZATION_PATH + " on the source default branch, then edit or "
+            "reopen this Issue. / 请在源码默认分支提交绑定本 Issue、作者 ID 和正文摘要的登记授权，再编辑或重新打开 Issue。"
+        )
 
     def apply(self, product, issue, kind):
         """Create one atomic main-branch commit without opening an admission PR."""

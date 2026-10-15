@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from release_metadata import append_product, listing_product, replace_product, submission
 from marketplace_sync import Marketplace, application_kind, catalog_documents, management_action
+from github_api import GitHubError
 
 
 class ReleaseAPI:
@@ -219,8 +220,10 @@ class SyncTest(unittest.TestCase):
         market.publisher_control("https://github.com/example/plugin", {"user": {"login": "example"}})
         github.api.assert_not_called()
         github.api.return_value = {"permission": "read"}
+        github.public_api.side_effect = GitHubError(404, "/repos/example/plugin")
         with self.assertRaisesRegex(ValueError, "does not control"):
-            market.publisher_control("https://github.com/example/plugin", {"user": {"login": "outsider"}})
+            market.publisher_control("https://github.com/example/plugin",
+                                     {"number": 7, "body": "request", "user": {"login": "outsider", "id": 123}})
         github.api.return_value = {"permission": "write"}
         market.publisher_control("https://github.com/example/plugin", {"user": {"login": "maintainer"}})
 

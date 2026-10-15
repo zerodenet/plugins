@@ -62,6 +62,11 @@ class GitHub:
         except HTTPError as error:
             raise GitHubError(error.code, path) from None
 
+    def public_api(self, path):
+        """Read public source evidence without forwarding the registry token."""
+        require(path.startswith('/repos/'), 'public source reads must target a repository')
+        return GitHub(token='').api(path)
+
     def pages(self, path):
         separator = '&' if '?' in path else '?'
         for page in range(1, 11):

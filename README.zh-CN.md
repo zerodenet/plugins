@@ -25,3 +25,5 @@
 ## 参考
 
 参阅[登记格式](docs/registry-format.zh-CN.md)、[自动化](docs/automation.zh-CN.md)、[开发](docs/development.zh-CN.md)、[架构](docs/governance.zh-CN.md)与[文档站](https://docs.zerodenet.org/marketplace/)。
+
+组织仓库或跨仓权限接口不可用时，可采用[源码仓库中的精确请求授权](docs/source-control.zh-CN.md)完成来源核验。

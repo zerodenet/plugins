@@ -51,7 +51,7 @@ body:
     id: publisher
     attributes:
       label: Publisher identity and public key / 发布者身份与公钥
-      description: Include key ID, base64 Ed25519 public key and an independently verifiable ownership channel. Never include private keys. / 提供公钥 ID、Base64 Ed25519 公钥及可独立核实归属的渠道，严禁填写私钥。
+      description: Include key ID, base64 Ed25519 public key and an independently verifiable ownership channel. Never include private keys. / 提供公钥 ID、Base64 Ed25519 公钥及可独立核实归属的渠道，严禁填写私钥。组织仓库或跨仓权限接口不可用时，按 docs/source-control.md 在源码默认分支提交绑定本 Issue 的公开授权。
     validations:
       required: true
   - type: textarea
