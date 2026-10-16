@@ -12,12 +12,12 @@ Develop and test in the independent repository. Choose a `vX.Y.Z` release, sign 
 
 ## Marketplace workflow
 
-Submit the release using the issue form or PR template. Update only the relevant entry in `catalogs/zboard.json` or `catalogs/znet-sink.json`, retaining previous releases. The entry template contains illustrative values that must all be replaced.
+Submit the release using the issue form. After maintainer approval, the Action updates only the relevant entry in `catalogs/zboard.json` or `catalogs/znet-sink.json`, retaining previous releases. The entry template contains illustrative values that must all be replaced.
 
 CI validates repository metadata and never executes submitted packages. Maintainers independently verify publisher/key ownership, release-to-source correspondence, package signatures, digests and host test evidence. A green source-validation check alone is insufficient for an installable listing.
 
 
-An issue containing the release metadata URL is validated automatically and linked to a generated review PR. After first inclusion, scheduled checks propose new stable releases without a cross-repository publisher token. Labels track validation, review and inclusion; they do not authorize a merge. See [marketplace automation](automation.md) for setup and failure handling.
+An issue containing the release metadata URL is validated and labeled automatically. A maintainer reviews the issue and applies `status:approved`; the Action revalidates and writes the catalog, then marks it `status:accepted` and closes the issue. After first inclusion, scheduled checks open review issues for new stable releases without a cross-repository publisher token. See [marketplace automation](automation.md) for setup and failure handling.
 
 ## Signed installation feeds
 

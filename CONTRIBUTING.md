@@ -6,15 +6,15 @@ Contributions include new plugin listings, release updates, metadata corrections
 
 ## Prepare a submission
 
-Use [the issue form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) to request review, or copy [templates/plugin-entry.json](templates/plugin-entry.json) into the `plugins` array of the appropriate host catalog. Replace every example value; the template's zero key, hashes and commit are placeholders, not usable credentials or release evidence.
+Use [the issue form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) to request review. Publish metadata following [templates/plugin-entry.json](templates/plugin-entry.json) in your own release; the Action updates the host catalog after a maintainer applies `status:approved` to the issue. Authors do not need to prepare a catalog PR. Replace every example value; the template's zero key, hashes and commit are placeholders, not usable credentials or release evidence.
 
-A submission must identify the repository, license, maintainers and publisher. For each release, provide the `vX.Y.Z` version, full source commit, host/API requirements, capabilities, UI surfaces and each platform artifact's immutable URL, SHA-256 and byte size. Include independently verifiable publisher/key ownership evidence and actual host/platform test results in the PR.
+A submission must identify the repository, license, maintainers and publisher. For each release, provide the `vX.Y.Z` version, full source commit, host/API requirements, capabilities, UI surfaces and each platform artifact's immutable URL, SHA-256 and byte size. Include independently verifiable publisher/key ownership evidence and actual host/platform test results in the submission issue.
 
 Public source alone may be listed with `releases: []` and `publisher.public_key: null`; such a listing cannot be installed. Do not invent package URLs, digests, tests or a signing key to fill missing information.
 
 ## Work on the registry
 
-Branch from `main` and keep the PR focused on one plugin or tooling change. Append releases to the existing plugin entry and retain prior releases. Do not duplicate plugin IDs or reassign an existing ID to another publisher. A key rotation needs a separate, reviewed transition plan.
+Tooling, policy and exceptional metadata corrections use focused PRs from `main`. Ordinary listings and release updates use the issue approval workflow described in [automation](docs/automation.md). Append releases to the existing plugin entry and retain prior releases. Do not duplicate plugin IDs or reassign an existing ID to another publisher. A key rotation needs a separate, reviewed transition plan.
 
 ```sh
 python3 -m unittest discover -s tests

@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Publish and sign the plugin in its own repository first. Provide the GitHub Release URL for marketplace-entry.json. Automation validates it and opens a review PR.
-        先在独立仓库签名发布插件，再提供 marketplace-entry.json 的 GitHub Release 链接，自动化会校验并生成审核 PR。不要提交源码、安装包或私钥。
+        Publish and sign the plugin in its own repository first. Provide the GitHub Release URL for marketplace-entry.json. Automation validates it and labels this issue for maintainer review. A maintainer applies status:approved to publish the catalog entry. No PR is required.
+        先在独立仓库签名发布插件，再提供 marketplace-entry.json 的 GitHub Release 链接，自动化校验后打标等待审核，维护者添加 status:approved 标签后自动更新目录，无需提交 PR。不要提交源码、安装包或私钥。
   - type: dropdown
     id: host
     attributes:

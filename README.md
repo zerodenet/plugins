@@ -19,7 +19,7 @@ The JSON files above are reviewed source records. They are not signed installati
 
 1. Maintain the plugin in a public source repository with a license, setup guide and security contact.
 2. Publish an independently versioned, signed release with immutable packages, SHA-256 digests and platform information.
-3. Use the [submission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml) or open a PR against `main` using [the entry template](templates/plugin-entry.json).
+3. Use the [submission form](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml). The Action validates and labels the issue; a maintainer applies `status:approved` after review to publish the catalog entry automatically.
 
 A release updates one plugin entry in its host catalog. Marketplace CI validates metadata without compiling plugins or running contributor packages. See [contributing](CONTRIBUTING.md) for the review requirements.
 

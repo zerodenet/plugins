@@ -19,7 +19,7 @@ OAuth 将 GitHub、Google 和自定义 OAuth2 / OpenID Connect 提供方接入 Z
 
 1. 在公开源码仓库维护插件，提供许可证、配置指南与安全联系渠道。
 2. 独立发布签名版本，提供固定安装包、SHA-256 摘要与平台信息。
-3. 使用[提交表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)，或参照[条目模板](templates/plugin-entry.json)向 `main` 提交 PR。
+3. 使用[提交表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)。Action 校验并自动打标，维护者审核后添加 `status:approved`，随后自动更新目录。
 
 一次发行只更新所属宿主目录内的一个插件条目。市场 CI 校验元数据，不编译插件，也不执行贡献者的安装包。审核要求见[贡献指南](CONTRIBUTING.zh-CN.md)。
 

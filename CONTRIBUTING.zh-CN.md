@@ -6,15 +6,15 @@
 
 ## 准备提交
 
-使用[问题表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)申请审核，或将 [templates/plugin-entry.json](templates/plugin-entry.json)复制到对应宿主目录的 `plugins` 数组。必须替换全部示例值；模板里的全零公钥、摘要和提交号仅作占位，不能用于实际发行。
+使用[问题表单](https://github.com/zerodenet/plugins/issues/new?template=submit-plugin.yml)申请审核，参照 [templates/plugin-entry.json](templates/plugin-entry.json) 在独立仓库的发行中提供元数据。维护者向申请添加 `status:approved` 后，由 Action 更新宿主目录，作者无需准备目录 PR。必须替换全部示例值；模板里的全零公钥、摘要和提交号仅作占位，不能用于实际发行。
 
-提交需注明源码仓库、许可证、维护者与发布者。每次发行提供 `vX.Y.Z` 版本、完整源码提交号、宿主及 API 要求、能力、界面范围，以及各平台产物的固定地址、SHA-256 和字节数。PR 中还应提供可独立核实的发布者与公钥归属证据，以及实际宿主和平台测试结果。
+提交需注明源码仓库、许可证、维护者与发布者。每次发行提供 `vX.Y.Z` 版本、完整源码提交号、宿主及 API 要求、能力、界面范围，以及各平台产物的固定地址、SHA-256 和字节数。申请 Issue 中还应提供可独立核实的发布者与公钥归属证据，以及实际宿主和平台测试结果。
 
 仅有公开源码的项目可使用 `releases: []` 和 `publisher.public_key: null` 收录，但不能安装。缺失的信息应保留为空，不得编造安装包地址、摘要、测试结果或签名公钥。
 
 ## 修改注册表
 
-从 `main` 创建分支，每个 PR 聚焦一个插件或一项工具改动。在既有插件条目追加发行记录并保留旧版本。禁止重复插件 ID，也不能把已有 ID 转交另一发布者。密钥轮换需要独立评审的过渡方案。
+工具、政策及特殊元数据修正从 `main` 创建分支并提交专注的 PR。普通收录和发行更新走 [Issue 审核流程](docs/automation.zh-CN.md)。在既有插件条目追加发行记录并保留旧版本。禁止重复插件 ID，也不能把已有 ID 转交另一发布者。密钥轮换需要独立评审的过渡方案。
 
 ```sh
 python3 -m unittest discover -s tests

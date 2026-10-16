@@ -48,43 +48,6 @@ class ReleaseAPI:
 
 
 class SyncTest(unittest.TestCase):
-    def test_proposals_only_write_the_host_catalog_and_reuse_existing_prs(self):
-        class API:
-            def __init__(self):
-                self.catalog = {'schema_version': 1, 'host': 'zboard', 'plugins': []}
-                self.proposals = []
-                self.writes = []
-                self.branch_catalog = None
-            def api(self, path, method='GET', data=None):
-                if method != 'GET': self.writes.append((path, method, data))
-                if path.endswith('/git/ref/heads/main'): return {'object': {'sha': 'a' * 40}}
-                if '/contents/catalogs/zboard.json?ref=' in path:
-                    value = self.catalog if path.endswith('a' * 40) else self.branch_catalog
-                    return {'encoding': 'base64', 'sha': 'b' * 40, 'content': base64.b64encode(json.dumps(value).encode()).decode()}
-                if '/pulls?state=all&head=' in path: return self.proposals
-                if path.endswith('/git/refs'):
-                    self.branch_catalog = copy.deepcopy(self.catalog); return {}
-                if path.endswith('/contents/catalogs/zboard.json') and method == 'PUT':
-                    self.branch_catalog = json.loads(base64.b64decode(data['content'])); return {}
-                if path.endswith('/pulls') and method == 'POST':
-                    result = {'number': 2, 'state': 'open', 'html_url': 'https://github.com/zerodenet/plugins/pull/2'}
-                    self.proposals.append(result); return result
-                if path.endswith('/issues/2'): return {'labels': []}
-                if path.endswith('/issues/2/labels'): return {}
-                raise AssertionError((path, method, data))
-        api = API()
-        market = Marketplace(api, 'zerodenet/plugins')
-        entry = ReleaseAPI().entry
-        first = market.propose('zboard', entry)
-        writes = len(api.writes)
-        self.assertEqual(market.propose('zboard', entry), first)
-        self.assertEqual(len(api.writes), writes)
-        puts = [path for path, method, _ in api.writes if method == 'PUT']
-        self.assertEqual(puts, ['/repos/zerodenet/plugins/contents/catalogs/zboard.json'])
-        api.proposals[0]['state'] = 'closed'
-        self.assertEqual(market.propose('zboard', entry)['state'], 'closed')
-        self.assertEqual(len(api.writes), writes)
-
     def test_existing_submission_and_form_link_are_supported(self):
         url = 'https://github.com/higanbana986/zboard-oauth/releases/download/v0.0.1/marketplace-entry.json'
         self.assertEqual(submission(f'### Release metadata URL\n\n{url}'), ('higanbana986/zboard-oauth', 'v0.0.1'))
@@ -168,6 +131,9 @@ class SyncTest(unittest.TestCase):
         workflow = (ROOT / '.github/workflows/marketplace.yml').read_text()
         self.assertIn('ref: main', workflow)
         self.assertIn('persist-credentials: false', workflow)
+        self.assertNotIn('pull_request_target:', workflow)
+        self.assertNotIn('pull-requests: write', workflow)
+        self.assertIn('queue: max', workflow)
         self.assertNotIn('github.event.issue.body', workflow)
         self.assertNotIn('github.event.pull_request.head.sha', workflow)
 
